@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, Home, X } from "lucide-react";
+import { Menu, Home, X, Building2 } from "lucide-react";
 import { useState } from "react";
 
 export function Header() {
@@ -17,10 +17,10 @@ export function Header() {
           className="flex items-center gap-2 transition-opacity hover:opacity-80 focus-visible:opacity-80"
           aria-label="AlugaFácil - Página inicial"
         >
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-            <Home className="h-5 w-5 text-primary-foreground" aria-hidden="true" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-500">
+            <Building2 className="h-5 w-5 text-primary-foreground" aria-hidden="true" />
           </div>
-          <span className="font-display text-xl font-semibold text-foreground">AlugaFácil</span>
+          <span className="font-display text-xl font-semibold text-foreground">Aluga Fácil</span>
         </Link>
 
         {/* Desktop Navigation */}
@@ -33,7 +33,9 @@ export function Header() {
                 </Button>
               </Link>
               <Link to="/registro">
-                <Button className="font-medium">
+                <Button 
+                  className="font-medium bg-blue-500 hover:bg-blue-400"
+                >
                   Começar agora
                 </Button>
               </Link>
@@ -48,7 +50,7 @@ export function Header() {
               <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-[280px] sm:w-[320px]">
+          <SheetContent side="right" className="w-full max-w-96 sm:w-[320px]">
             <div className="flex flex-col gap-6 pt-6">
               <div className="flex items-center justify-between">
                 <span className="font-display text-lg font-semibold">Menu</span>
@@ -62,7 +64,7 @@ export function Header() {
                       </Button>
                     </Link>
                     <Link to="/registro" onClick={() => setIsOpen(false)}>
-                      <Button className="w-full font-medium">
+                      <Button className="w-full font-medium bg-blue-500 hover:bg-blue-400">
                         Começar agora
                       </Button>
                     </Link>

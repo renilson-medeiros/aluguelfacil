@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Header } from "@/components/layout/Header";
 import { useState } from "react";
-import { Eye, EyeOff, Home } from "lucide-react";
+import { Building2, Eye, EyeOff, Home } from "lucide-react";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -26,8 +26,8 @@ export default function Login() {
       <main className="flex flex-1 items-center justify-center px-4 py-12">
         <Card className="w-full max-w-md animate-fade-in border-border/50 shadow-xl">
           <CardHeader className="space-y-1 text-center">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary">
-              <Home className="h-6 w-6 text-primary-foreground" aria-hidden="true" />
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500">
+              <Building2 className="h-6 w-6 text-primary-foreground" aria-hidden="true" />
             </div>
             <CardTitle className="font-display text-2xl">Bem-vindo de volta</CardTitle>
             <CardDescription>
@@ -55,7 +55,7 @@ export default function Login() {
                   <Label htmlFor="password">Senha</Label>
                   <Link 
                     to="#" 
-                    className="text-sm text-primary hover:underline focus-visible:underline"
+                    className="text-sm text-blue-500 hover:underline focus-visible:underline"
                   >
                     Esqueceu a senha?
                   </Link>
@@ -75,7 +75,7 @@ export default function Login() {
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="absolute right-0 top-0 h-11 w-11 text-muted-foreground hover:text-foreground"
+                    className="absolute right-0 top-0 h-11 w-11  text-muted-foreground hover:text-foreground"
                     onClick={() => setShowPassword(!showPassword)}
                     aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                   >
@@ -88,14 +88,14 @@ export default function Login() {
                 </div>
               </div>
 
-              <Button type="submit" className="h-11 w-full text-base">
+              <Button type="submit" className="h-11 w-full text-base bg-blue-500 hover:bg-blue-400">
                 Entrar
               </Button>
             </form>
 
             <div className="mt-6 text-center text-sm">
               <span className="text-muted-foreground">Não tem uma conta? </span>
-              <Link to="/registro" className="font-medium text-primary hover:underline">
+              <Link to="/registro" className="font-medium text-blue-500 hover:underline">
                 Criar conta
               </Link>
             </div>

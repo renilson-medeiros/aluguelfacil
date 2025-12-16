@@ -63,7 +63,7 @@ export default function Landing() {
       
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative overflow-hidden bg-gradient-to-b from-accent/50 to-background py-20 lg:py-32">
+        <section className="relative overflow-hidden bg-gradient-to-b from-accent/50 to-blue-50/25 py-20 lg:py-32">
           <div className="container">
             <div className="mx-auto max-w-3xl text-center">
               <h1 className="animate-fade-in font-display text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
@@ -76,7 +76,7 @@ export default function Landing() {
               </p>
               <div className="mt-10 flex flex-col items-center justify-center gap-4 animate-fade-in [animation-delay:200ms] sm:flex-row">
                 <Link to="/registro">
-                  <Button size="lg" className="w-full gap-2 text-base sm:w-auto">
+                  <Button size="lg" className="w-full gap-2 text-base sm:w-auto bg-blue-500 hover:bg-blue-400">
                     Começar agora
                     <ArrowRight className="h-4 w-4" aria-hidden="true" />
                   </Button>
@@ -114,12 +114,12 @@ export default function Landing() {
               {features.map((feature, index) => (
                 <Card 
                   key={feature.title} 
-                  className="group border-border/50 bg-card/50 transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5"
+                  className="group border-border/50 bg-card/50 transition-all duration-300 hover:border-blue-100 hover:shadow-lg hover:shadow-primary/5"
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
                   <CardContent className="p-6">
                     <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-accent transition-colors group-hover:bg-primary/10">
-                      <feature.icon className="h-6 w-6 text-primary" aria-hidden="true" />
+                      <feature.icon className="h-6 w-6 text-blue-500 " aria-hidden="true" />
                     </div>
                     <h3 className="font-display text-lg font-semibold">{feature.title}</h3>
                     <p className="mt-2 text-sm text-muted-foreground">{feature.description}</p>
@@ -145,7 +145,7 @@ export default function Landing() {
                   <ul className="mt-8 space-y-3" role="list">
                     {benefits.map((benefit) => (
                       <li key={benefit} className="flex items-center gap-3">
-                        <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-primary" aria-hidden="true" />
+                        <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-blue-500" aria-hidden="true" />
                         <span className="text-foreground">{benefit}</span>
                       </li>
                     ))}
@@ -165,7 +165,7 @@ export default function Landing() {
                         Imóveis ilimitados • Inquilinos ilimitados
                       </p>
                       <Link to="/registro" className="mt-6 block">
-                        <Button size="lg" className="w-full text-base">
+                        <Button size="lg" className="w-full text-base bg-blue-500 hover:bg-blue-400">
                           Começar agora
                         </Button>
                       </Link>
@@ -191,7 +191,7 @@ export default function Landing() {
                 Junte-se a centenas de proprietários que já usam o AlugaFácil.
               </p>
               <Link to="/registro" className="mt-8 inline-block">
-                <Button size="lg" className="gap-2 text-base">
+                <Button size="lg" className="gap-2 text-base bg-blue-500 hover:bg-blue-400">
                   Criar minha conta
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </Button>

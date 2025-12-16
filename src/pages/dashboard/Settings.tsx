@@ -32,8 +32,8 @@ export default function Settings() {
         {/* Profile Settings */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 font-display">
-              <User className="h-5 w-5" aria-hidden="true" />
+            <CardTitle className="flex items-end gap-2 font-display">
+              <User className="h-5 w-5 text-blue-500" aria-hidden="true" />
               Dados pessoais
             </CardTitle>
             <CardDescription>
@@ -68,15 +68,20 @@ export default function Settings() {
                 />
               </div>
             </div>
-            <Button onClick={handleSave}>Salvar alterações</Button>
+            <Button 
+              onClick={handleSave} 
+              className="bg-blue-500 hover:bg-blue-400"
+            >
+              Salvar alterações
+            </Button>
           </CardContent>
         </Card>
 
         {/* Subscription */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 font-display">
-              <CreditCard className="h-5 w-5" aria-hidden="true" />
+            <CardTitle className="flex items-end gap-2 font-display">
+              <CreditCard className="h-5 w-5 text-blue-500" aria-hidden="true" />
               Assinatura
             </CardTitle>
             <CardDescription>
@@ -102,8 +107,8 @@ export default function Settings() {
         {/* Notifications */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 font-display">
-              <Bell className="h-5 w-5" aria-hidden="true" />
+            <CardTitle className="flex items-end gap-2 font-display">
+              <Bell className="h-5 w-5 text-blue-500" aria-hidden="true" />
               Notificações
             </CardTitle>
             <CardDescription>
@@ -132,15 +137,15 @@ export default function Settings() {
         </Card>
 
         {/* Danger Zone */}
-        <Card className="border-destructive/20">
+        <Card className="border-red-500/90">
           <CardHeader>
-            <CardTitle className="font-display text-destructive">Zona de perigo</CardTitle>
+            <CardTitle className="font-display text-red-500">Zona de perigo</CardTitle>
             <CardDescription>
               Ações irreversíveis para sua conta
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button variant="destructive">Cancelar assinatura</Button>
+            <Button variant="destructive" className="bg-red-500 hover:bg-red-400">Cancelar assinatura</Button>
           </CardContent>
         </Card>
       </div>

@@ -79,7 +79,7 @@ export default function PropertiesList() {
             <p className="text-muted-foreground">Gerencie seus imóveis cadastrados</p>
           </div>
           <Link to="/dashboard/imoveis/novo">
-            <Button className="gap-2">
+            <Button className="gap-2 bg-blue-500 hover:bg-blue-400">
               <Plus className="h-4 w-4" aria-hidden="true" />
               Novo imóvel
             </Button>
@@ -142,23 +142,23 @@ export default function PropertiesList() {
                         onClick={() => handleShare(property)}
                         aria-label="Compartilhar imóvel"
                       >
-                        <Share2 className="h-4 w-4" />
+                        <Share2 className="h-4 w-4 text-blue-500" />
                       </Button>
                       <Link to={`/imovel/${property.id}`}>
                         <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Ver imóvel">
-                          <Eye className="h-4 w-4" />
+                          <Eye className="h-4 w-4 text-blue-500" />
                         </Button>
                       </Link>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Mais opções">
-                            <MoreHorizontal className="h-4 w-4" />
+                            <MoreHorizontal className="h-4 w-4 text-blue-500" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="bg-popover">
                           <DropdownMenuItem asChild>
                             <Link to={`/dashboard/imoveis/${property.id}/editar`} className="cursor-pointer">
-                              <Edit className="mr-2 h-4 w-4" />
+                              <Edit className="mr-2 h-4 w-4 text-blue-500" />
                               Editar
                             </Link>
                           </DropdownMenuItem>

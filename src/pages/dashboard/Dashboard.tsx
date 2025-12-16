@@ -27,7 +27,7 @@ export default function Dashboard() {
             <p className="text-muted-foreground">Bem-vindo de volta! Aqui está o resumo dos seus imóveis.</p>
           </div>
           <Link to="/dashboard/imoveis/novo">
-            <Button className="gap-2">
+            <Button className="gap-2 bg-blue-500 hover:bg-blue-400">
               <Plus className="h-4 w-4" aria-hidden="true" />
               Novo imóvel
             </Button>
@@ -39,12 +39,12 @@ export default function Dashboard() {
           {stats.map((stat, index) => (
             <Link key={stat.label} to={stat.href}>
               <Card 
-                className="group transition-all duration-300 hover:border-primary/30 hover:shadow-lg"
+                className="group transition-all duration-300 hover:border-blue-500/30 hover:shadow-lg"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 <CardContent className="flex items-center gap-4 p-6">
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent transition-colors group-hover:bg-primary/10">
-                    <stat.icon className="h-6 w-6 text-primary" aria-hidden="true" />
+                    <stat.icon className="h-6 w-6 text-blue-500" aria-hidden="true" />
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">{stat.label}</p>
@@ -76,7 +76,7 @@ export default function Dashboard() {
                 >
                   <div className="flex items-center gap-4">
                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent">
-                      <Building2 className="h-5 w-5 text-accent-foreground" aria-hidden="true" />
+                      <Building2 className="h-5 w-5 text-blue-500" aria-hidden="true" />
                     </div>
                     <div>
                       <p className="font-medium">{property.title}</p>
@@ -101,14 +101,14 @@ export default function Dashboard() {
         </Card>
 
         {/* Quick Tip */}
-        <Card className="border-primary/20 bg-accent/30">
+        <Card className="border-blue-500 bg-blue-500">
           <CardContent className="flex items-center gap-4 p-6">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-              <TrendingUp className="h-5 w-5 text-primary" aria-hidden="true" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500">
+              <TrendingUp className="h-5 w-5 text-muted" aria-hidden="true" />
             </div>
             <div className="flex-1">
-              <p className="font-medium">Dica: Compartilhe seus imóveis</p>
-              <p className="text-sm text-muted-foreground">
+              <p className="font-medium text-muted">Dica: Compartilhe seus imóveis</p>
+              <p className="text-sm text-secondary/80">
                 Gere links únicos para cada imóvel e compartilhe nas redes sociais para atrair mais inquilinos.
               </p>
             </div>

@@ -193,8 +193,8 @@ export default function ReceiptForm() {
             {/* Inquilino */}
             <Card className="animate-fade-in">
               <CardHeader>
-                <div className="flex items-center gap-2">
-                  <User className="h-5 w-5 text-primary" aria-hidden="true" />
+                <div className="flex items-end gap-2">
+                  <User className="h-5 w-5 text-blue-500" aria-hidden="true" />
                   <CardTitle>Inquilino</CardTitle>
                 </div>
               </CardHeader>
@@ -237,8 +237,8 @@ export default function ReceiptForm() {
             {/* Referência */}
             <Card className="animate-fade-in" style={{ animationDelay: "100ms" }}>
               <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-primary" aria-hidden="true" />
+                <div className="flex items-end gap-2">
+                  <Calendar className="h-5 w-5 text-blue-500" aria-hidden="true" />
                   <CardTitle>Referência</CardTitle>
                 </div>
               </CardHeader>
@@ -287,8 +287,8 @@ export default function ReceiptForm() {
             {/* Valores */}
             <Card className="animate-fade-in" style={{ animationDelay: "200ms" }}>
               <CardHeader>
-                <div className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5 text-primary" aria-hidden="true" />
+                <div className="flex items-end gap-2">
+                  <DollarSign className="h-5 w-5 text-blue-500" aria-hidden="true" />
                   <CardTitle>Valores</CardTitle>
                 </div>
               </CardHeader>
@@ -350,7 +350,7 @@ export default function ReceiptForm() {
                 className="gap-2"
                 onClick={() => setShowPreview(!showPreview)}
               >
-                <Eye className="h-4 w-4" />
+                <Eye className="h-4 w-4 text-blue-500" />
                 {showPreview ? "Ocultar preview" : "Ver preview"}
               </Button>
               <div className="flex flex-1 flex-col-reverse gap-3 sm:flex-row sm:justify-end">
@@ -359,7 +359,7 @@ export default function ReceiptForm() {
                     Cancelar
                   </Button>
                 </Link>
-                <Button type="submit" disabled={isSubmitting || !formData.tenantId} className="w-full sm:w-auto">
+                <Button type="submit" disabled={isSubmitting || !formData.tenantId} className="w-full sm:w-auto bg-blue-500 hover:bg-blue-400">
                   {isSubmitting ? "Salvando..." : "Gerar comprovante"}
                 </Button>
               </div>
@@ -372,15 +372,15 @@ export default function ReceiptForm() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Receipt className="h-5 w-5 text-primary" aria-hidden="true" />
+                    <Receipt className="h-5 w-5 text-blue-500" aria-hidden="true" />
                     <CardTitle>Preview</CardTitle>
                   </div>
                   <div className="flex gap-2">
                     <Button variant="outline" size="icon" onClick={handleDownload} aria-label="Baixar comprovante">
-                      <Download className="h-4 w-4" />
+                      <Download className="h-4 w-4 text-blue-500" />
                     </Button>
                     <Button variant="outline" size="icon" onClick={handleShare} aria-label="Compartilhar comprovante">
-                      <Share2 className="h-4 w-4" />
+                      <Share2 className="h-4 w-4 text-blue-500" />
                     </Button>
                   </div>
                 </div>

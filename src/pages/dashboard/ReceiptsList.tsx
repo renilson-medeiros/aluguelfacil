@@ -75,8 +75,8 @@ export default function ReceiptsList() {
             <p className="text-muted-foreground">Histórico de comprovantes de pagamento</p>
           </div>
           <Link to="/dashboard/comprovantes/novo">
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" aria-hidden="true" />
+            <Button className="gap-2 bg-blue-500 hover:bg-blue-400">
+              <Plus className="h-4 w-4 " aria-hidden="true" />
               Novo comprovante
             </Button>
           </Link>
@@ -107,8 +107,8 @@ export default function ReceiptsList() {
                 <CardContent className="p-6">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-start gap-4">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-success/10">
-                        <Receipt className="h-6 w-6 text-success" aria-hidden="true" />
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent text-blue-500">
+                        <Receipt className="h-6 w-6" aria-hidden="true" />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
@@ -142,11 +142,11 @@ export default function ReceiptsList() {
                       <div className="flex items-center gap-1">
                         <Link to={`/dashboard/comprovantes/${receipt.id}`}>
                           <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Ver comprovante">
-                            <Eye className="h-4 w-4" />
+                            <Eye className="h-4 w-4 text-blue-500" />
                           </Button>
                         </Link>
                         <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Baixar comprovante">
-                          <Download className="h-4 w-4" />
+                          <Download className="h-4 w-4 text-blue-500" />
                         </Button>
                       </div>
                     </div>

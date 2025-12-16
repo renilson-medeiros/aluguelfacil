@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Checkbox } from "@/components/ui/checkbox";
 import { Header } from "@/components/layout/Header";
 import { useState } from "react";
-import { Eye, EyeOff, Home, CreditCard } from "lucide-react";
+import { Eye, EyeOff, Home, CreditCard, Building2 } from "lucide-react";
 
 export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
@@ -37,8 +37,8 @@ export default function Register() {
       <main className="flex flex-1 items-center justify-center px-4 py-12">
         <Card className="w-full max-w-md animate-fade-in border-border/50 shadow-xl">
           <CardHeader className="space-y-1 text-center">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary">
-              <Home className="h-6 w-6 text-primary-foreground" aria-hidden="true" />
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500">
+              <Building2 className="h-6 w-6 text-primary-foreground" aria-hidden="true" />
             </div>
             <CardTitle className="font-display text-2xl">Criar conta</CardTitle>
             <CardDescription>
@@ -120,7 +120,7 @@ export default function Register() {
                 </div>
               </div>
 
-              <div className="flex items-start space-x-2">
+              <div className="flex items-end space-x-2">
                 <Checkbox
                   id="terms"
                   checked={formData.acceptTerms}
@@ -130,9 +130,9 @@ export default function Register() {
                 />
                 <Label htmlFor="terms" className="text-sm font-normal leading-tight text-muted-foreground">
                   Aceito os{" "}
-                  <Link to="#" className="text-primary hover:underline">termos de uso</Link>
+                  <Link to="#" className="text-blue-500 hover:underline">termos de uso</Link>
                   {" "}e a{" "}
-                  <Link to="#" className="text-primary hover:underline">política de privacidade</Link>
+                  <Link to="#" className="text-blue-500 hover:underline">política de privacidade</Link>
                 </Label>
               </div>
 
@@ -146,14 +146,14 @@ export default function Register() {
                 </div>
               </div>
 
-              <Button type="submit" className="h-11 w-full text-base">
+              <Button type="submit" className="h-11 w-full text-base bg-blue-500 hover:bg-blue-400">
                 Criar conta e assinar
               </Button>
             </form>
 
             <div className="mt-6 text-center text-sm">
               <span className="text-muted-foreground">Já tem uma conta? </span>
-              <Link to="/login" className="font-medium text-primary hover:underline">
+              <Link to="/login" className="font-medium text-blue-500 hover:underline">
                 Fazer login
               </Link>
             </div>

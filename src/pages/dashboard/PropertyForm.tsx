@@ -177,8 +177,8 @@ export default function PropertyForm() {
         {/* Endereço */}
         <Card className="animate-fade-in">
           <CardHeader>
-            <div className="flex items-center gap-2">
-              <MapPin className="h-5 w-5 text-primary" aria-hidden="true" />
+            <div className="flex items-end gap-2">
+              <MapPin className="h-5 w-5 text-blue-500" aria-hidden="true" />
               <CardTitle>Endereço</CardTitle>
             </div>
             <CardDescription>Localização completa do imóvel</CardDescription>
@@ -264,8 +264,8 @@ export default function PropertyForm() {
         {/* Informações do Imóvel */}
         <Card className="animate-fade-in" style={{ animationDelay: "100ms" }}>
           <CardHeader>
-            <div className="flex items-center gap-2">
-              <Home className="h-5 w-5 text-primary" aria-hidden="true" />
+            <div className="flex items-end gap-2">
+              <Home className="h-5 w-5 text-blue-500" aria-hidden="true" />
               <CardTitle>Informações do Imóvel</CardTitle>
             </div>
             <CardDescription>Detalhes e características</CardDescription>
@@ -288,7 +288,7 @@ export default function PropertyForm() {
                   id="type"
                   value={formData.type}
                   onChange={(e) => handleInputChange("type", e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-100"
                 >
                   {propertyTypes.map(type => (
                     <option key={type.value} value={type.value}>{type.label}</option>
@@ -322,7 +322,7 @@ export default function PropertyForm() {
                     <button
                       type="button"
                       onClick={() => removePhoto(index)}
-                      className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-destructive text-destructive-foreground opacity-0 transition-opacity group-hover:opacity-100"
+                      className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-400 text-destructive-foreground opacity-0 transition-opacity group-hover:opacity-100"
                       aria-label="Remover foto"
                     >
                       <X className="h-4 w-4" />
@@ -354,16 +354,16 @@ export default function PropertyForm() {
                 {formData.rooms.map((room) => (
                   <span
                     key={room}
-                    className="inline-flex items-center gap-1 rounded-full bg-accent px-3 py-1 text-sm"
+                    className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-3 py-1 text-sm"
                   >
                     {room}
                     <button
                       type="button"
                       onClick={() => removeRoom(room)}
-                      className="ml-1 rounded-full p-0.5 hover:bg-muted"
+                      className="ml-1 rounded-full p-0.5"
                       aria-label={`Remover ${room}`}
                     >
-                      <X className="h-3 w-3" />
+                      <X className="h-3 w-3 hover:text-red-400" />
                     </button>
                   </span>
                 ))}
@@ -417,8 +417,8 @@ export default function PropertyForm() {
         {/* Valores */}
         <Card className="animate-fade-in" style={{ animationDelay: "200ms" }}>
           <CardHeader>
-            <div className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5 text-primary" aria-hidden="true" />
+            <div className="flex items-end gap-2">
+              <DollarSign className="h-5 w-5 text-blue-500" aria-hidden="true" />
               <CardTitle>Valores</CardTitle>
             </div>
             <CardDescription>Custos mensais do imóvel</CardDescription>
@@ -510,8 +510,8 @@ export default function PropertyForm() {
         {/* Observações */}
         <Card className="animate-fade-in" style={{ animationDelay: "300ms" }}>
           <CardHeader>
-            <div className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-primary" aria-hidden="true" />
+            <div className="flex items-end gap-2">
+              <FileText className="h-5 w-5 text-blue-500" aria-hidden="true" />
               <CardTitle>Observações</CardTitle>
             </div>
             <CardDescription>Informações adicionais que deseja compartilhar</CardDescription>
@@ -534,7 +534,7 @@ export default function PropertyForm() {
               Cancelar
             </Button>
           </Link>
-          <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
+          <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto bg-blue-500 hover:bg-blue-400">
             {isSubmitting ? "Salvando..." : "Cadastrar imóvel"}
           </Button>
         </div>

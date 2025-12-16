@@ -123,8 +123,8 @@ export default function PropertyDetail() {
                 <h1 className="font-display text-3xl font-bold text-foreground sm:text-4xl">
                   {property.title}
                 </h1>
-                <div className="mt-2 flex items-center gap-2 text-muted-foreground">
-                  <MapPin className="h-4 w-4" aria-hidden="true" />
+                <div className="mt-2 flex items-baseline gap-2 text-muted-foreground">
+                  <MapPin className="h-4 w-4 text-blue-500" aria-hidden="true" />
                   <span>
                     {property.address.street}, {property.address.number}
                     {property.address.complement && ` - ${property.address.complement}`}, {property.address.neighborhood}, {property.address.city} - {property.address.state}
@@ -174,14 +174,14 @@ export default function PropertyDetail() {
                   <h2 className="font-display text-xl font-semibold">Regras e políticas</h2>
                   <div className="mt-4 grid gap-4 sm:grid-cols-2">
                     <div className="flex items-center gap-3">
-                      <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${property.details.acceptsPets ? 'bg-success/10' : 'bg-destructive/10'}`}>
-                        <PawPrint className={`h-5 w-5 ${property.details.acceptsPets ? 'text-success' : 'text-destructive'}`} aria-hidden="true" />
+                      <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${property.details.acceptsPets ? 'bg-blue-500/10' : 'bg-destructive/10'}`}>
+                        <PawPrint className={`h-5 w-5 ${property.details.acceptsPets ? 'text-blue-500' : 'text-destructive'}`} aria-hidden="true" />
                       </div>
                       <span>{property.details.acceptsPets ? 'Aceita pets' : 'Não aceita pets'}</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${property.details.acceptsChildren ? 'bg-success/10' : 'bg-destructive/10'}`}>
-                        <Baby className={`h-5 w-5 ${property.details.acceptsChildren ? 'text-success' : 'text-destructive'}`} aria-hidden="true" />
+                      <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${property.details.acceptsChildren ? 'bg-blue-500/10' : 'bg-destructive/10'}`}>
+                        <Baby className={`h-5 w-5 ${property.details.acceptsChildren ? 'text-blue-500' : 'text-destructive'}`} aria-hidden="true" />
                       </div>
                       <span>{property.details.acceptsChildren ? 'Aceita crianças' : 'Não aceita crianças'}</span>
                     </div>
@@ -201,32 +201,32 @@ export default function PropertyDetail() {
                   <h2 className="font-display text-xl font-semibold">Incluso no valor</h2>
                   <div className="mt-4 grid gap-4 sm:grid-cols-2">
                     <div className="flex items-center gap-3">
-                      <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${property.included.water ? 'bg-success/10' : 'bg-muted'}`}>
-                        <Droplets className={`h-5 w-5 ${property.included.water ? 'text-success' : 'text-muted-foreground'}`} aria-hidden="true" />
+                      <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${property.included.water ? 'bg-blue-500/10' : 'bg-muted'}`}>
+                        <Droplets className={`h-5 w-5 ${property.included.water ? 'text-blue-500' : 'text-muted-foreground'}`} aria-hidden="true" />
                       </div>
                       <span className={property.included.water ? '' : 'text-muted-foreground'}>
                         Água {property.included.water ? 'inclusa' : 'não inclusa'}
                       </span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${property.included.electricity ? 'bg-success/10' : 'bg-muted'}`}>
-                        <Zap className={`h-5 w-5 ${property.included.electricity ? 'text-success' : 'text-muted-foreground'}`} aria-hidden="true" />
+                      <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${property.included.electricity ? 'bg-blue-500/10' : 'bg-muted'}`}>
+                        <Zap className={`h-5 w-5 ${property.included.electricity ? 'text-blue-500' : 'text-muted-foreground'}`} aria-hidden="true" />
                       </div>
                       <span className={property.included.electricity ? '' : 'text-muted-foreground'}>
                         Luz {property.included.electricity ? 'inclusa' : 'não inclusa'}
                       </span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${property.included.internet ? 'bg-success/10' : 'bg-muted'}`}>
-                        <Wifi className={`h-5 w-5 ${property.included.internet ? 'text-success' : 'text-muted-foreground'}`} aria-hidden="true" />
+                      <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${property.included.internet ? 'bg-blue-500/10' : 'bg-muted'}`}>
+                        <Wifi className={`h-5 w-5 ${property.included.internet ? 'text-blue-500' : 'text-muted-foreground'}`} aria-hidden="true" />
                       </div>
                       <span className={property.included.internet ? '' : 'text-muted-foreground'}>
                         Internet {property.included.internet ? 'inclusa' : 'não inclusa'}
                       </span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${property.included.gas ? 'bg-success/10' : 'bg-muted'}`}>
-                        <Flame className={`h-5 w-5 ${property.included.gas ? 'text-success' : 'text-muted-foreground'}`} aria-hidden="true" />
+                      <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${property.included.gas ? 'bg-blue-500/10' : 'bg-muted'}`}>
+                        <Flame className={`h-5 w-5 ${property.included.gas ? 'text-blue-500' : 'text-muted-foreground'}`} aria-hidden="true" />
                       </div>
                       <span className={property.included.gas ? '' : 'text-muted-foreground'}>
                         Gás {property.included.gas ? 'incluso' : 'não incluso'}
@@ -291,7 +291,7 @@ export default function PropertyDetail() {
 
                     <Button 
                       size="lg" 
-                      className="mt-4 w-full gap-2 text-base"
+                      className="mt-4 w-full gap-2 text-base bg-blue-500 hover:bg-blue-400"
                       onClick={handleWhatsAppContact}
                     >
                       <MessageCircle className="h-5 w-5" aria-hidden="true" />
