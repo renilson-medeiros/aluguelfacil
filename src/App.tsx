@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -25,23 +26,25 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/registro" element={<Register />} />
-          <Route path="/imovel/:id" element={<PropertyDetail />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/dashboard/imoveis" element={<PropertiesList />} />
-          <Route path="/dashboard/imoveis/novo" element={<PropertyForm />} />
-          <Route path="/dashboard/imoveis/:id/editar" element={<PropertyForm />} />
-          <Route path="/dashboard/imoveis/:propertyId/inquilino" element={<TenantForm />} />
-          <Route path="/dashboard/inquilinos" element={<TenantsList />} />
-          <Route path="/dashboard/inquilinos/novo" element={<TenantForm />} />
-          <Route path="/dashboard/comprovantes" element={<ReceiptsList />} />
-          <Route path="/dashboard/comprovantes/novo" element={<ReceiptForm />} />
-          <Route path="/dashboard/configuracoes" element={<Settings />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/registro" element={<Register />} />
+            <Route path="/imovel/:id" element={<PropertyDetail />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard/imoveis" element={<PropertiesList />} />
+            <Route path="/dashboard/imoveis/novo" element={<PropertyForm />} />
+            <Route path="/dashboard/imoveis/:id/editar" element={<PropertyForm />} />
+            <Route path="/dashboard/imoveis/:propertyId/inquilino" element={<TenantForm />} />
+            <Route path="/dashboard/inquilinos" element={<TenantsList />} />
+            <Route path="/dashboard/inquilinos/novo" element={<TenantForm />} />
+            <Route path="/dashboard/comprovantes" element={<ReceiptsList />} />
+            <Route path="/dashboard/comprovantes/novo" element={<ReceiptForm />} />
+            <Route path="/dashboard/configuracoes" element={<Settings />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

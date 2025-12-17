@@ -1,3 +1,4 @@
+// src/pages/dashboard/PropertiesList.tsx
 import { Link } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,62 +12,152 @@ import {
   Eye, 
   Edit, 
   MoreHorizontal,
-  MapPin
+  MapPin,
+  Trash2
 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 
-const mockProperties = [
-  {
-    id: "1",
-    title: "Apartamento Centro",
-    address: "Rua das Flores, 123 - Centro, São Paulo",
-    rent: 2500,
-    status: "ocupado",
-    tenant: "João Silva",
-    image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400&h=300&fit=crop"
-  },
-  {
-    id: "2",
-    title: "Casa Jardins",
-    address: "Av. Brasil, 456 - Jardins, São Paulo",
-    rent: 4500,
-    status: "disponível",
-    tenant: null,
-    image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&h=300&fit=crop"
-  },
-  {
-    id: "3",
-    title: "Kitnet Zona Sul",
-    address: "Rua Augusta, 789 - Consolação, São Paulo",
-    rent: 1200,
-    status: "ocupado",
-    tenant: "Maria Santos",
-    image: "https://images.unsplash.com/photo-1484154218962-a197022b5858?w=400&h=300&fit=crop"
-  },
-];
+interface Property {
+  id: string;
+  title: string;
+  address: string;
+  rent: number;
+  status: string;
+  tenant: string | null;
+  image: string;
+}
 
 export default function PropertiesList() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
-  const filteredProperties = mockProperties.filter(
+  // Carregar imóveis do banco
+  useEffect(() => {
+    loadProperties();
+  }, []);
+
+  const loadProperties = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('imoveis')
+        .select(`
+          *,
+          inquilinos(nome_completo, status)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Formatar dados para o formato do componente
+      const formattedProperties: Property[] = (data || []).map(imovel => {
+        // Pegar primeiro inquilino ativo
+        const activeInquilino = imovel.inquilinos?.find((inq: any) => inq.status === 'ativo');
+        
+        return {
+          id: imovel.id,
+          title: imovel.titulo || `${imovel.endereco_rua}, ${imovel.endereco_numero}`,
+          address: `${imovel.endereco_rua}, ${imovel.endereco_numero} - ${imovel.endereco_bairro}, ${imovel.endereco_cidade}`,
+          rent: imovel.valor_aluguel || 0,
+          status: imovel.status === 'alugado' ? 'ocupado' : imovel.status === 'disponivel' ? 'disponível' : 'manutenção',
+          tenant: activeInquilino?.nome_completo || null,
+          image: (imovel.fotos && imovel.fotos.length > 0) 
+            ? imovel.fotos[0] 
+            : "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&h=300&fit=crop"
+        };
+      });
+
+      setProperties(formattedProperties);
+    } catch (error) {
+      console.error('Erro ao carregar imóveis:', error);
+      toast.error('Erro ao carregar imóveis');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredProperties = properties.filter(
     (property) =>
       property.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       property.address.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleShare = (property: typeof mockProperties[0]) => {
+  const handleShare = (property: Property) => {
     const url = `${window.location.origin}/imovel/${property.id}`;
     navigator.clipboard.writeText(url);
     toast.success("Link copiado!", {
       description: "Compartilhe com potenciais inquilinos.",
     });
+  };
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+
+    try {
+      setDeleting(true);
+
+      // Buscar imóvel para pegar as fotos
+      const { data: imovel } = await supabase
+        .from('imoveis')
+        .select('fotos')
+        .eq('id', deleteId)
+        .single();
+
+      // Deletar fotos do storage
+      if (imovel?.fotos && imovel.fotos.length > 0) {
+        const filePaths = imovel.fotos.map((url: string) => {
+          const urlParts = url.split('/');
+          const userFolder = urlParts[urlParts.length - 2];
+          const fileName = urlParts[urlParts.length - 1];
+          return `${userFolder}/${fileName}`;
+        });
+
+        await supabase.storage
+          .from('imoveis-fotos')
+          .remove(filePaths);
+      }
+
+      // Deletar imóvel do banco
+      const { error } = await supabase
+        .from('imoveis')
+        .delete()
+        .eq('id', deleteId);
+
+      if (error) throw error;
+
+      toast.success('Imóvel excluído com sucesso!');
+      
+      // Recarregar lista
+      await loadProperties();
+    } catch (error) {
+      console.error('Erro ao excluir imóvel:', error);
+      toast.error('Erro ao excluir imóvel');
+    } finally {
+      setDeleting(false);
+      setDeleteId(null);
+    }
   };
 
   return (
@@ -99,8 +190,21 @@ export default function PropertiesList() {
           />
         </div>
 
-        {/* Properties Grid */}
-        {filteredProperties.length > 0 ? (
+        {/* Properties Grid - Loading */}
+        {loading ? (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <Card key={index} className="overflow-hidden animate-pulse">
+                <div className="aspect-video bg-accent" />
+                <CardContent className="p-4 space-y-3">
+                  <div className="h-4 bg-accent rounded w-3/4" />
+                  <div className="h-3 bg-accent rounded w-full" />
+                  <div className="h-4 bg-accent rounded w-1/2" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : filteredProperties.length > 0 ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {filteredProperties.map((property, index) => (
               <Card 
@@ -132,7 +236,7 @@ export default function PropertiesList() {
                   </div>
                   <div className="mt-3 flex items-center justify-between">
                     <p className="font-semibold text-primary">
-                      R$ {property.rent.toLocaleString('pt-BR')}/mês
+                      R$ {property.rent.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/mês
                     </p>
                     <div className="flex items-center gap-1">
                       <Button
@@ -170,6 +274,14 @@ export default function PropertiesList() {
                               </Link>
                             </DropdownMenuItem>
                           )}
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem 
+                            className="cursor-pointer text-red-600 focus:text-red-600"
+                            onClick={() => setDeleteId(property.id)}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Excluir
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
@@ -197,7 +309,7 @@ export default function PropertiesList() {
               </p>
               {!searchQuery && (
                 <Link to="/dashboard/imoveis/novo" className="mt-4">
-                  <Button className="gap-2">
+                  <Button className="gap-2 bg-blue-500 hover:bg-blue-400">
                     <Plus className="h-4 w-4" aria-hidden="true" />
                     Cadastrar imóvel
                   </Button>
@@ -207,6 +319,28 @@ export default function PropertiesList() {
           </Card>
         )}
       </div>
+
+      {/* Dialog de Confirmação de Exclusão */}
+      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir imóvel</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este imóvel? Esta ação não pode ser desfeita e todos os dados relacionados (inquilinos, comprovantes) também serão excluídos.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={deleting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {deleting ? "Excluindo..." : "Excluir"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashboardLayout>
   );
 }

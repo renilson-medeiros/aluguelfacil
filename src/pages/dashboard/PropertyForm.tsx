@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+// src/pages/dashboard/PropertyForm.tsx
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,9 +18,12 @@ import {
   MapPin,
   DollarSign,
   Settings2,
-  FileText
+  FileText,
+  Loader2
 } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface PropertyFormData {
   // Endereço
@@ -93,11 +97,106 @@ const propertyTypes = [
 
 export default function PropertyForm() {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const { user } = useAuth();
+  const isEditing = !!id;
+
   const [formData, setFormData] = useState<PropertyFormData>(initialFormData);
   const [photos, setPhotos] = useState<File[]>([]);
   const [photosPreviews, setPhotosPreviews] = useState<string[]>([]);
+  const [existingPhotos, setExistingPhotos] = useState<string[]>([]);
   const [newRoom, setNewRoom] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingCep, setIsLoadingCep] = useState(false);
+
+  // Carregar dados se estiver editando
+  useEffect(() => {
+    if (isEditing) {
+      loadProperty();
+    }
+  }, [id]);
+
+  const loadProperty = async () => {
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('imoveis')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+
+      setFormData({
+        cep: data.endereco_cep || "",
+        street: data.endereco_rua || "",
+        number: data.endereco_numero || "",
+        complement: data.endereco_complemento || "",
+        neighborhood: data.endereco_bairro || "",
+        city: data.endereco_cidade || "",
+        state: data.endereco_estado || "",
+        title: data.titulo || "",
+        type: data.tipo || "apartamento",
+        rooms: data.comodos || ["Sala", "Cozinha", "Banheiro", "Quarto"],
+        maxPeople: data.max_pessoas?.toString() || "",
+        acceptsPets: data.aceita_pets || false,
+        hasGarage: data.tem_garagem || false,
+        acceptsChildren: data.aceita_criancas !== false,
+        rentValue: data.valor_aluguel ? formatCurrency(data.valor_aluguel.toString()) : "",
+        condoValue: data.valor_condominio ? formatCurrency(data.valor_condominio.toString()) : "",
+        iptuValue: data.valor_iptu ? formatCurrency(data.valor_iptu.toString()) : "",
+        serviceValue: data.valor_taxa_servico ? formatCurrency(data.valor_taxa_servico.toString()) : "",
+        includesWater: data.inclui_agua || false,
+        includesElectricity: data.inclui_luz || false,
+        includesInternet: data.inclui_internet || false,
+        includesGas: data.inclui_gas || false,
+        observations: data.descricao || "",
+      });
+
+      if (data.fotos && data.fotos.length > 0) {
+        setExistingPhotos(data.fotos);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar imóvel:', error);
+      toast.error('Erro ao carregar dados do imóvel');
+      navigate('/dashboard/imoveis');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Buscar endereço por CEP
+  const fetchAddressByCep = async (cep: string) => {
+    const cleanCep = cep.replace(/\D/g, '');
+    
+    if (cleanCep.length !== 8) return;
+
+    setIsLoadingCep(true);
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+      const data = await response.json();
+
+      if (data.erro) {
+        toast.error('CEP não encontrado');
+        return;
+      }
+
+      setFormData(prev => ({
+        ...prev,
+        street: data.logradouro || prev.street,
+        neighborhood: data.bairro || prev.neighborhood,
+        city: data.localidade || prev.city,
+        state: data.uf || prev.state,
+      }));
+
+      toast.success('Endereço encontrado!');
+    } catch (error) {
+      toast.error('Erro ao buscar CEP');
+    } finally {
+      setIsLoadingCep(false);
+    }
+  };
 
   const handleInputChange = (field: keyof PropertyFormData, value: string | boolean | string[]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -107,6 +206,13 @@ export default function PropertyForm() {
     const files = e.target.files;
     if (files) {
       const newPhotos = Array.from(files);
+      
+      // Limitar a 10 fotos
+      if (photos.length + newPhotos.length + existingPhotos.length > 10) {
+        toast.error('Máximo de 10 fotos permitidas');
+        return;
+      }
+
       setPhotos(prev => [...prev, ...newPhotos]);
       
       newPhotos.forEach(file => {
@@ -124,6 +230,10 @@ export default function PropertyForm() {
     setPhotosPreviews(prev => prev.filter((_, i) => i !== index));
   };
 
+  const removeExistingPhoto = (index: number) => {
+    setExistingPhotos(prev => prev.filter((_, i) => i !== index));
+  };
+
   const addRoom = () => {
     if (newRoom.trim() && !formData.rooms.includes(newRoom.trim())) {
       handleInputChange("rooms", [...formData.rooms, newRoom.trim()]);
@@ -137,16 +247,115 @@ export default function PropertyForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!user) {
+      toast.error('Você precisa estar logado');
+      return;
+    }
+
     setIsSubmitting(true);
-    
-    // Simular salvamento
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    toast.success("Imóvel cadastrado com sucesso!", {
-      description: "Você pode compartilhar o link do imóvel.",
-    });
-    
-    navigate("/dashboard/imoveis");
+
+    try {
+      // Upload de novas fotos
+      const uploadedPhotosUrls: string[] = [];
+      
+      for (const photo of photos) {
+        const fileExt = photo.name.split('.').pop();
+        const fileName = `${user.id}/${Date.now()}-${Math.random()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('imoveis-fotos')
+          .upload(fileName, photo);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('imoveis-fotos')
+          .getPublicUrl(fileName);
+
+        uploadedPhotosUrls.push(publicUrl);
+      }
+
+      // Combinar fotos existentes com as novas
+      const allPhotos = [...existingPhotos, ...uploadedPhotosUrls];
+
+      // Preparar dados para salvar
+      const propertyData = {
+        proprietario_id: user.id,
+        // Endereço
+        endereco_cep: formData.cep,
+        endereco_rua: formData.street,
+        endereco_numero: formData.number,
+        endereco_complemento: formData.complement || null,
+        endereco_bairro: formData.neighborhood,
+        endereco_cidade: formData.city,
+        endereco_estado: formData.state,
+        // Informações
+        titulo: formData.title,
+        tipo: formData.type as 'casa' | 'apartamento' | 'comercial' | 'terreno',
+        comodos: formData.rooms,
+        max_pessoas: formData.maxPeople ? parseInt(formData.maxPeople) : null,
+        aceita_pets: formData.acceptsPets,
+        tem_garagem: formData.hasGarage,
+        aceita_criancas: formData.acceptsChildren,
+        // Valores
+        valor_aluguel: parseCurrencyToNumber(formData.rentValue),
+        valor_condominio: formData.condoValue ? parseCurrencyToNumber(formData.condoValue) : null,
+        valor_iptu: formData.iptuValue ? parseCurrencyToNumber(formData.iptuValue) : null,
+        valor_taxa_servico: formData.serviceValue ? parseCurrencyToNumber(formData.serviceValue) : null,
+        // Inclusões
+        inclui_agua: formData.includesWater,
+        inclui_luz: formData.includesElectricity,
+        inclui_internet: formData.includesInternet,
+        inclui_gas: formData.includesGas,
+        // Observações
+        descricao: formData.observations || null,
+        // Fotos
+        fotos: allPhotos.length > 0 ? allPhotos : null,
+        status: 'disponivel' as 'disponivel' | 'alugado' | 'manutencao',
+        // Campos default (pode ajustar depois)
+        quartos: null,
+        banheiros: null,
+        area_m2: null,
+      };
+
+      if (isEditing) {
+        // Atualizar imóvel existente
+        const { error } = await supabase
+          .from('imoveis')
+          .update(propertyData)
+          .eq('id', id);
+
+        if (error) throw error;
+
+        toast.success("Imóvel atualizado com sucesso!");
+      } else {
+        // Criar novo imóvel
+        const { error } = await supabase
+          .from('imoveis')
+          .insert([propertyData]);
+
+        if (error) throw error;
+
+        toast.success("Imóvel cadastrado com sucesso!", {
+          description: "Você pode compartilhar o link do imóvel.",
+        });
+      }
+
+      navigate("/dashboard/imoveis");
+    } catch (error: any) {
+      console.error('Erro ao salvar imóvel:', error);
+      toast.error(error.message || 'Erro ao salvar imóvel');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Funções de formatação (máscaras)
+  const formatCep = (value: string) => {
+    const numbers = value.replace(/\D/g, "");
+    if (numbers.length <= 5) return numbers;
+    return `${numbers.slice(0, 5)}-${numbers.slice(5, 8)}`;
   };
 
   const formatCurrency = (value: string) => {
@@ -157,6 +366,24 @@ export default function PropertyForm() {
     });
     return numbers ? formatted : "";
   };
+
+  const parseCurrencyToNumber = (value: string): number => {
+    const numbers = value.replace(/[^\d]/g, "");
+    return parseInt(numbers) / 100;
+  };
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <Loader2 className="h-12 w-12 animate-spin text-blue-500 mx-auto mb-4" />
+            <p className="text-muted-foreground">Carregando dados...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -169,7 +396,9 @@ export default function PropertyForm() {
             </Button>
           </Link>
           <div>
-            <h1 className="font-display text-2xl font-bold sm:text-3xl">Novo Imóvel</h1>
+            <h1 className="font-display text-2xl font-bold sm:text-3xl">
+              {isEditing ? 'Editar Imóvel' : 'Novo Imóvel'}
+            </h1>
             <p className="text-muted-foreground">Preencha as informações do imóvel</p>
           </div>
         </div>
@@ -187,13 +416,25 @@ export default function PropertyForm() {
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <div className="space-y-2">
                 <Label htmlFor="cep">CEP</Label>
-                <Input
-                  id="cep"
-                  placeholder="00000-000"
-                  value={formData.cep}
-                  onChange={(e) => handleInputChange("cep", e.target.value)}
-                  maxLength={9}
-                />
+                <div className="relative">
+                  <Input
+                    id="cep"
+                    placeholder="00000-000"
+                    value={formData.cep}
+                    onChange={(e) => {
+                      const formatted = formatCep(e.target.value);
+                      handleInputChange("cep", formatted);
+                      if (formatted.replace(/\D/g, '').length === 8) {
+                        fetchAddressByCep(formatted);
+                      }
+                    }}
+                    maxLength={9}
+                    disabled={isLoadingCep}
+                  />
+                  {isLoadingCep && (
+                    <Loader2 className="absolute right-3 top-2.5 h-5 w-5 animate-spin text-blue-500" />
+                  )}
+                </div>
               </div>
               <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="street">Rua</Label>
@@ -252,7 +493,7 @@ export default function PropertyForm() {
                   id="state"
                   placeholder="SP"
                   value={formData.state}
-                  onChange={(e) => handleInputChange("state", e.target.value)}
+                  onChange={(e) => handleInputChange("state", e.target.value.toUpperCase())}
                   maxLength={2}
                   required
                 />
@@ -312,6 +553,26 @@ export default function PropertyForm() {
             <div className="space-y-3">
               <Label>Fotos do imóvel</Label>
               <div className="flex flex-wrap gap-3">
+                {/* Fotos existentes */}
+                {existingPhotos.map((photo, index) => (
+                  <div key={`existing-${index}`} className="relative group">
+                    <img
+                      src={photo}
+                      alt={`Foto existente ${index + 1}`}
+                      className="h-24 w-24 rounded-lg object-cover border border-border"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeExistingPhoto(index)}
+                      className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-400 text-destructive-foreground opacity-0 transition-opacity group-hover:opacity-100"
+                      aria-label="Remover foto"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+                
+                {/* Novas fotos */}
                 {photosPreviews.map((preview, index) => (
                   <div key={index} className="relative group">
                     <img
@@ -329,6 +590,8 @@ export default function PropertyForm() {
                     </button>
                   </div>
                 ))}
+                
+                {/* Botão upload */}
                 <label
                   htmlFor="photos"
                   className="flex h-24 w-24 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-accent/50 text-muted-foreground transition-colors hover:border-primary hover:text-primary"
@@ -530,12 +793,23 @@ export default function PropertyForm() {
         {/* Actions */}
         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
           <Link to="/dashboard/imoveis">
-            <Button type="button" variant="outline" className="w-full sm:w-auto">
+            <Button type="button" variant="outline" className="w-full sm:w-auto" disabled={isSubmitting}>
               Cancelar
             </Button>
           </Link>
-          <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto bg-blue-500 hover:bg-blue-400">
-            {isSubmitting ? "Salvando..." : "Cadastrar imóvel"}
+          <Button 
+            type="submit" 
+            disabled={isSubmitting} 
+            className="w-full sm:w-auto bg-blue-500 hover:bg-blue-400"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {isEditing ? 'Salvando...' : 'Cadastrando...'}
+              </>
+            ) : (
+              isEditing ? 'Salvar alterações' : 'Cadastrar imóvel'
+            )}
           </Button>
         </div>
       </form>

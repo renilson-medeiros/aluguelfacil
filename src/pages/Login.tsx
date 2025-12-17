@@ -1,3 +1,4 @@
+// src/pages/Login.tsx
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -5,18 +6,56 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Header } from "@/components/layout/Header";
 import { useState } from "react";
-import { Building2, Eye, EyeOff, Home } from "lucide-react";
+import { Building2, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { signIn } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simula login - navega para dashboard
-    navigate("/dashboard");
+    setError("");
+    setLoading(true);
+
+    try {
+      // Validações básicas
+      if (!email || !password) {
+        throw new Error("Preencha todos os campos");
+      }
+
+      if (!email.includes("@")) {
+        throw new Error("Email inválido");
+      }
+
+      if (password.length < 6) {
+        throw new Error("A senha deve ter pelo menos 6 caracteres");
+      }
+
+      // Fazer login no Supabase
+      await signIn(email, password);
+
+      // Redirecionar para dashboard
+      navigate("/dashboard");
+    } catch (err: any) {
+      console.error("Erro no login:", err);
+
+      // Mensagens de erro personalizadas
+      if (err.message.includes("Invalid login credentials")) {
+        setError("Email ou senha incorretos");
+      } else if (err.message.includes("Email not confirmed")) {
+        setError("Por favor, confirme seu email antes de fazer login");
+      } else {
+        setError(err.message || "Erro ao fazer login. Tente novamente.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -36,6 +75,17 @@ export default function Login() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Mensagem de Erro */}
+              {error && (
+                <div className="rounded-lg bg-red-50 border border-red-200 p-3 flex items-start gap-2">
+                  <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm text-red-800 font-medium">Erro ao fazer login</p>
+                    <p className="text-sm text-red-700 mt-0.5">{error}</p>
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <Label htmlFor="email">E-mail</Label>
                 <Input
@@ -47,6 +97,7 @@ export default function Login() {
                   required
                   autoComplete="email"
                   className="h-11"
+                  disabled={loading}
                 />
               </div>
               
@@ -70,6 +121,7 @@ export default function Login() {
                     required
                     autoComplete="current-password"
                     className="h-11 pr-10"
+                    disabled={loading}
                   />
                   <Button
                     type="button"
@@ -78,6 +130,7 @@ export default function Login() {
                     className="absolute right-0 top-0 h-11 w-11  text-muted-foreground hover:text-foreground"
                     onClick={() => setShowPassword(!showPassword)}
                     aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                    disabled={loading}
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4" />
@@ -88,8 +141,19 @@ export default function Login() {
                 </div>
               </div>
 
-              <Button type="submit" className="h-11 w-full text-base bg-blue-500 hover:bg-blue-400">
-                Entrar
+              <Button 
+                type="submit" 
+                className="h-11 w-full text-base bg-blue-500 hover:bg-blue-400"
+                disabled={loading}
+              >
+                {loading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Entrando...</span>
+                  </div>
+                ) : (
+                  "Entrar"
+                )}
               </Button>
             </form>
 
