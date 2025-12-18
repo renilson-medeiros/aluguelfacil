@@ -27,6 +27,7 @@ import {
   DollarSign,
   Settings2,
   FileText,
+  Check,
   Loader2
 } from "lucide-react";
 import { toast } from "sonner";
@@ -216,9 +217,10 @@ export default function PropertyForm() {
     if (files) {
       const newPhotos = Array.from(files);
 
-      // Limitar a 10 fotos
-      if (photos.length + newPhotos.length + existingPhotos.length > 10) {
-        toast.error('Máximo de 10 fotos permitidas');
+      // Limitar a 8 fotos
+      const totalPhotos = photos.length + newPhotos.length + existingPhotos.length;
+      if (totalPhotos > 8) {
+        toast.error('Máximo de 8 fotos permitidas');
         return;
       }
 
@@ -287,6 +289,19 @@ export default function PropertyForm() {
 
       // Combinar fotos existentes com as novas
       const allPhotos = [...existingPhotos, ...uploadedPhotosUrls];
+
+      // Validar quantidade de fotos
+      if (allPhotos.length < 3) {
+        toast.error('Mínimo de 3 fotos necessárias');
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (allPhotos.length > 8) {
+        toast.error('Máximo de 8 fotos permitidas');
+        setIsSubmitting(false);
+        return;
+      }
 
       // Preparar dados para salvar
       const propertyData = {
@@ -570,7 +585,25 @@ export default function PropertyForm() {
 
             {/* Fotos */}
             <div className="space-y-3">
-              <Label>Fotos do imóvel</Label>
+              <div className="flex items-center justify-between">
+                <Label>
+                  Fotos do imóvel
+                  <span className="ml-2 text-xs text-muted-foreground">
+                    ({existingPhotos.length + photos.length}/8 fotos)
+                  </span>
+                </Label>
+                {(existingPhotos.length + photos.length) < 3 && (
+                  <span className="text-xs text-red-500">
+                    Mínimo 3 fotos necessárias
+                  </span>
+                )}
+                {(existingPhotos.length + photos.length) >= 3 && (existingPhotos.length + photos.length) <= 8 && (
+                  <div className="text-xs text-green-600 flex gap-1 items-center">
+                    <Check className="h-4 w-4" />
+                    <span>Quantidade válida</span>
+                  </div>
+                )}
+              </div>
               <div className="flex flex-wrap gap-3">
                 {/* Fotos existentes */}
                 {existingPhotos.map((photo, index) => (
