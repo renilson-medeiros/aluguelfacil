@@ -1,21 +1,21 @@
 // src\lib\supabase.ts
-import { createClient } from '@supabase/supabase-js';
+// Este arquivo mantém os tipos e funções auxiliares
+// Os clientes Supabase agora estão em:
+// - ./supabase/client.ts (para uso no browser)
+// - ./supabase/server.ts (para uso no servidor)
+// - ./supabase/middleware.ts (para uso no middleware)
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+import { createClient } from './supabase/client';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Faltam as variáveis de ambiente do Supabase! Adicione VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no arquivo .env');
+  throw new Error('Faltam as variáveis de ambiente do Supabase! Adicione NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY no arquivo .env');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-    storage: window.localStorage,
-  },
-});
+// Cliente para uso no browser (Client Components)
+export const supabase = createClient();
 
 
 // TIPOS DO BANCO DE DADOS

@@ -1,0 +1,287 @@
+
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { User, Phone, Mail, CreditCard, Calendar, Bell, Loader2, AlertCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabase";
+import { validarTelefone, formatarTelefone } from "@/lib/validators";
+
+export default function Settings() {
+  const { user, profile } = useAuth();
+  const [userData, setUserData] = useState({
+    nome_completo: "",
+    email: "",
+    telefone: ""
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (profile) {
+      setUserData({
+        nome_completo: profile.nome_completo || "",
+        email: profile.email || "",
+        telefone: profile.telefone || ""
+      });
+      setIsLoading(false);
+    } else if (user) {
+      // Se não tiver profile mas tiver user, ainda está carregando
+      setIsLoading(true);
+    } else {
+      setIsLoading(false);
+      setError("Usuário não autenticado");
+    }
+  }, [profile, user]);
+
+  const handleSave = async () => {
+    if (!user || !profile) {
+      toast.error("Você precisa estar logado");
+      return;
+    }
+
+    // Validações
+    if (!userData.nome_completo.trim()) {
+      toast.error("Nome completo é obrigatório");
+      return;
+    }
+
+    if (userData.telefone && !validarTelefone(userData.telefone)) {
+      toast.error("Telefone inválido");
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          nome_completo: userData.nome_completo.trim(),
+          telefone: userData.telefone.replace(/\D/g, '') || null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
+
+      toast.success("Configurações salvas com sucesso!");
+    } catch (err: any) {
+      console.error('Erro ao salvar configurações:', err);
+      toast.error(err.message || 'Erro ao salvar configurações');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-blue-500 mx-auto mb-4" />
+          <p className="text-muted-foreground">Carregando configurações...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="py-12">
+        <CardContent className="flex flex-col items-center justify-center text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-50">
+            <AlertCircle className="h-8 w-8 text-red-500" />
+          </div>
+          <h3 className="mt-4 font-display text-lg font-semibold">Erro ao carregar dados</h3>
+          <p className="mt-1 text-sm text-muted-foreground">{error}</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <>
+      <div className="space-y-6">
+        {/* Header */}
+        <div>
+          <h1 className="font-display text-2xl font-bold sm:text-3xl">Configurações</h1>
+          <p className="text-muted-foreground">Gerencie sua conta e preferências</p>
+        </div>
+
+        {/* Profile Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-end gap-2 font-display">
+              <User className="h-5 w-5 text-blue-500" aria-hidden="true" />
+              Dados pessoais
+            </CardTitle>
+            <CardDescription>
+              Informações da sua conta de proprietário
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="name">Nome completo</Label>
+                <Input
+                  id="name"
+                  value={userData.nome_completo}
+                  onChange={(e) => setUserData({ ...userData, nome_completo: e.target.value })}
+                  disabled={isSaving}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">E-mail</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={userData.email}
+                  disabled
+                  className="bg-muted cursor-not-allowed"
+                  title="O email não pode ser alterado"
+                />
+                <p className="text-xs text-muted-foreground">O email não pode ser alterado</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone">Telefone</Label>
+                <Input
+                  id="phone"
+                  value={userData.telefone}
+                  onChange={(e) => setUserData({ ...userData, telefone: formatarTelefone(e.target.value) })}
+                  placeholder="(11) 99999-9999"
+                  maxLength={15}
+                  disabled={isSaving}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="cpf">CPF</Label>
+                <Input
+                  id="cpf"
+                  value={profile?.cpf || ""}
+                  disabled
+                  className="bg-muted cursor-not-allowed"
+                  title="O CPF não pode ser alterado"
+                />
+                <p className="text-xs text-muted-foreground">O CPF não pode ser alterado</p>
+              </div>
+            </div>
+            <Button
+              onClick={handleSave}
+              className="bg-blue-500 hover:bg-blue-400"
+              disabled={isSaving}
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                'Salvar alterações'
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Account Info */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-end gap-2 font-display">
+              <CreditCard className="h-5 w-5 text-blue-500" aria-hidden="true" />
+              Informações da conta
+            </CardTitle>
+            <CardDescription>
+              Detalhes da sua conta
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between py-2">
+                <div>
+                  <p className="font-medium">Tipo de conta</p>
+                  <p className="text-sm text-muted-foreground">
+                    {profile?.role === 'admin' ? 'Administrador' : 'Proprietário'}
+                  </p>
+                </div>
+                <Badge variant={profile?.role === 'admin' ? 'default' : 'outline'}>
+                  {profile?.role === 'admin' ? 'Admin' : 'Proprietário'}
+                </Badge>
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between py-2">
+                <div>
+                  <p className="font-medium">Membro desde</p>
+                  <p className="text-sm text-muted-foreground">
+                    {profile?.created_at
+                      ? new Date(profile.created_at).toLocaleDateString('pt-BR', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                      })
+                      : 'Data não disponível'
+                    }
+                  </p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Notifications */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-end gap-2 font-display">
+              <Bell className="h-5 w-5 text-blue-500" aria-hidden="true" />
+              Notificações
+            </CardTitle>
+            <CardDescription>
+              Configure como deseja receber alertas
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Lembrete de pagamento</p>
+                  <p className="text-sm text-muted-foreground">Receba alertas quando o dia do pagamento se aproximar</p>
+                </div>
+                <Badge variant="outline" className="bg-muted">Em breve</Badge>
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Novos contatos</p>
+                  <p className="text-sm text-muted-foreground">Seja notificado quando alguém visualizar seu imóvel</p>
+                </div>
+                <Badge variant="outline" className="bg-muted">Em breve</Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Danger Zone */}
+        <Card className="border-red-500/90">
+          <CardHeader>
+            <CardTitle className="font-display text-red-500">Zona de perigo</CardTitle>
+            <CardDescription>
+              Ações irreversíveis para sua conta
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              Para excluir sua conta, entre em contato com o suporte.
+            </p>
+            <Button variant="destructive" className="bg-red-500 hover:bg-red-400" disabled>
+              Excluir conta (Em breve)
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    </>
+  );
+}

@@ -1,19 +1,22 @@
-import { Link, useLocation } from "react-router-dom";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, Home, X, Building2 } from "lucide-react";
+import { Menu, Home, X, Building2, LayoutDashboard } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
-  const location = useLocation();
-  const isAuthPage = location.pathname === "/login" || location.pathname === "/registro";
+  const pathname = usePathname();
+  const { user } = useAuth();
+  const isAuthPage = pathname === "/login" || pathname === "/registro";
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <nav className="container flex h-16 items-center justify-between" aria-label="Navegação principal">
-        <Link 
-          to="/" 
+        <Link
+          href="/"
           className="flex items-center gap-2 transition-opacity hover:opacity-80 focus-visible:opacity-80"
           aria-label="AlugaFácil - Página inicial"
         >
@@ -27,18 +30,27 @@ export function Header() {
         <div className="hidden items-center gap-4 md:flex">
           {!isAuthPage && (
             <>
-              <Link to="/login">
-                <Button variant="ghost" className="font-medium">
-                  Entrar
-                </Button>
-              </Link>
-              <Link to="/registro">
-                <Button 
-                  className="font-medium bg-blue-500 hover:bg-blue-400"
-                >
-                  Começar agora
-                </Button>
-              </Link>
+              {user ? (
+                <Link href="/dashboard">
+                  <Button className="font-medium bg-blue-500 hover:bg-blue-400 gap-2">
+                    <LayoutDashboard className="h-4 w-4" />
+                    Dashboard
+                  </Button>
+                </Link>
+              ) : (
+                <>
+                  <Link href="/login">
+                    <Button variant="ghost" className="font-medium">
+                      Entrar
+                    </Button>
+                  </Link>
+                  <Link href="/registro">
+                    <Button className="font-medium bg-blue-500 hover:bg-blue-400">
+                      Começar agora
+                    </Button>
+                  </Link>
+                </>
+              )}
             </>
           )}
         </div>
@@ -58,16 +70,27 @@ export function Header() {
               <nav className="flex flex-col gap-3" aria-label="Menu mobile">
                 {!isAuthPage && (
                   <>
-                    <Link to="/login" onClick={() => setIsOpen(false)}>
-                      <Button variant="ghost" className="w-full justify-start font-medium">
-                        Entrar
-                      </Button>
-                    </Link>
-                    <Link to="/registro" onClick={() => setIsOpen(false)}>
-                      <Button className="w-full font-medium bg-blue-500 hover:bg-blue-400">
-                        Começar agora
-                      </Button>
-                    </Link>
+                    {user ? (
+                      <Link href="/dashboard" onClick={() => setIsOpen(false)}>
+                        <Button className="w-full font-medium bg-blue-500 hover:bg-blue-400 gap-2">
+                          <LayoutDashboard className="h-4 w-4" />
+                          Dashboard
+                        </Button>
+                      </Link>
+                    ) : (
+                      <>
+                        <Link href="/login" onClick={() => setIsOpen(false)}>
+                          <Button variant="ghost" className="w-full justify-start font-medium">
+                            Entrar
+                          </Button>
+                        </Link>
+                        <Link href="/registro" onClick={() => setIsOpen(false)}>
+                          <Button className="w-full font-medium bg-blue-500 hover:bg-blue-400">
+                            Começar agora
+                          </Button>
+                        </Link>
+                      </>
+                    )}
                   </>
                 )}
               </nav>

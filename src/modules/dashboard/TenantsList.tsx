@@ -1,0 +1,259 @@
+import Link from "next/link";
+import { useEffect, useState } from "react";
+
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Users,
+  Plus,
+  Search,
+  Phone,
+  Mail,
+  Building2,
+  Calendar,
+  MoreHorizontal,
+  Receipt,
+  Eye,
+  Loader2,
+  AlertCircle
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
+
+interface Tenant {
+  id: string;
+  nome_completo: string;
+  cpf: string;
+  telefone: string;
+  email: string | null;
+  imovel_id: string;
+  dia_vencimento: number;
+  data_inicio: string;
+  data_fim: string | null;
+  status: 'ativo' | 'inativo';
+  imoveis: {
+    titulo: string;
+    endereco_rua: string;
+    endereco_numero: string;
+  } | null;
+}
+
+export default function TenantsList() {
+  const { user } = useAuth();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [tenants, setTenants] = useState<Tenant[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user) {
+      loadTenants();
+    }
+  }, [user]);
+
+  const loadTenants = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const { data, error: fetchError } = await supabase
+        .from('inquilinos')
+        .select(`
+          *,
+          imoveis!inner (
+            titulo,
+            endereco_rua,
+            endereco_numero,
+            proprietario_id
+          )
+        `)
+        .eq('imoveis.proprietario_id', user?.id)
+        .order('created_at', { ascending: false });
+
+      if (fetchError) throw fetchError;
+
+      setTenants(data || []);
+    } catch (err: any) {
+      console.error('Erro ao carregar inquilinos:', err);
+      setError(err.message || 'Erro ao carregar inquilinos');
+      toast.error('Erro ao carregar inquilinos');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const filteredTenants = tenants.filter(
+    (tenant) =>
+      tenant.nome_completo.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tenant.cpf.includes(searchQuery) ||
+      (tenant.imoveis?.titulo || '').toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-blue-500 mx-auto mb-4" />
+          <p className="text-muted-foreground">Carregando inquilinos...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="py-12">
+        <CardContent className="flex flex-col items-center justify-center text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-50">
+            <AlertCircle className="h-8 w-8 text-red-500" />
+          </div>
+          <h3 className="mt-4 font-display text-lg font-semibold">Erro ao carregar dados</h3>
+          <p className="mt-1 text-sm text-muted-foreground">{error}</p>
+          <Button onClick={loadTenants} variant="outline" className="mt-4">
+            Tentar novamente
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="font-display text-2xl font-bold sm:text-3xl">Inquilinos</h1>
+            <p className="text-muted-foreground">
+              {tenants.length === 0
+                ? 'Nenhum inquilino cadastrado'
+                : `${tenants.length} inquilino${tenants.length !== 1 ? 's' : ''} cadastrado${tenants.length !== 1 ? 's' : ''}`
+              }
+            </p>
+          </div>
+        </div>
+
+        {/* Search */}
+        {tenants.length > 0 && (
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+            <Input
+              type="search"
+              placeholder="Buscar inquilino..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+              aria-label="Buscar inquilino"
+            />
+          </div>
+        )}
+
+        {/* Tenants List */}
+        {filteredTenants.length > 0 ? (
+          <div className="grid gap-4">
+            {filteredTenants.map((tenant, index) => (
+              <Card
+                key={tenant.id}
+                className="transition-all duration-300 hover:shadow-md animate-fade-in"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <CardContent className="p-6">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex items-start gap-4">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent">
+                        <Users className="h-6 w-6 text-blue-500" aria-hidden="true" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-display font-semibold">{tenant.nome_completo}</h3>
+                          <Badge variant="outline" className="text-xs">
+                            {tenant.status === "ativo" ? "Ativo" : "Inativo"}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground">CPF: {tenant.cpf}</p>
+
+                        <div className="mt-3 flex flex-wrap gap-4 text-sm">
+                          <div className="flex items-center gap-1.5 text-muted-foreground">
+                            <Building2 className="h-4 w-4" aria-hidden="true" />
+                            <span>{tenant.imoveis?.titulo || 'Imóvel não encontrado'}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-muted-foreground">
+                            <Calendar className="h-4 w-4" aria-hidden="true" />
+                            <span>Dia {tenant.dia_vencimento}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-muted-foreground">
+                            <Phone className="h-4 w-4" aria-hidden="true" />
+                            <span>{tenant.telefone}</span>
+                          </div>
+                        </div>
+
+                        <p className="mt-2 text-xs text-muted-foreground">
+                          Contrato: {new Date(tenant.data_inicio).toLocaleDateString('pt-BR')}
+                          {tenant.data_fim && ` até ${new Date(tenant.data_fim).toLocaleDateString('pt-BR')}`}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Link href={`/dashboard/comprovantes/novo?inquilino=${tenant.id}`}>
+                        <Button variant="outline" size="sm" className="gap-1.5 border-blue-500 hover:border-blue-400 bg-blue-500 hover:bg-blue-400 text-muted hover:text-muted">
+                          <Receipt className="h-4 w-4" aria-hidden="true" />
+                          Gerar comprovante
+                        </Button>
+                      </Link>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Mais opções">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-popover">
+                          <DropdownMenuItem asChild>
+                            <Link href={`/dashboard/inquilinos/${tenant.id}`} className="cursor-pointer">
+                              <Eye className="mr-2 h-4 w-4 text-blue-500" />
+                              Ver detalhes
+                            </Link>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <Card className="py-12">
+            <CardContent className="flex flex-col items-center justify-center text-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-accent">
+                <Users className="h-8 w-8 text-muted-foreground" aria-hidden="true" />
+              </div>
+              <h3 className="mt-4 font-display text-lg font-semibold">Nenhum inquilino encontrado</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {searchQuery
+                  ? "Tente buscar com outros termos"
+                  : "Você ainda não tem inquilinos cadastrados. Cadastre um inquilino em um dos seus imóveis."}
+              </p>
+              {!searchQuery && (
+                <Link href="/dashboard/imoveis" className="mt-4">
+                  <Button variant="outline">
+                    Ver imóveis
+                  </Button>
+                </Link>
+              )}
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </>
+  );
+}

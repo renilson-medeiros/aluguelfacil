@@ -1,0 +1,36 @@
+
+> aluguelfacil@0.0.0 build
+> next build
+
+⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of C:\Users\renil\package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * C:\Users\renil\Documents\DEV\aluguelfacil\package-lock.json
+
+▲ Next.js 16.1.0 (Turbopack)
+- Environments: .env.local, .env
+
+  Creating an optimized production build ...
+
+> Build error occurred
+Error: Turbopack build failed with 1 errors:
+./Documents/DEV/aluguelfacil/src/app/globals.css
+Error evaluating Node.js code
+Error: It looks like you're trying to use `tailwindcss` directly as a PostCSS plugin. The PostCSS plugin has moved to a separate package, so to continue using Tailwind CSS with PostCSS you'll need to install `@tailwindcss/postcss` and update your PostCSS configuration.
+    [at lt (C:\Users\renil\Documents\DEV\aluguelfacil\node_modules\tailwindcss\dist\lib.js:38:1643)]
+    at turbopack:///[turbopack-node]/transforms/postcss.ts:56:14 [C:\Users\renil\Documents\DEV\aluguelfacil\.next\build\chunks\[root-of-the-server]__23ee922a._.js:165:20]
+    [at <anonymous>]
+    at Module.init (turbopack:///[turbopack-node]/transforms/postcss.ts:43:33) [C:\Users\renil\Documents\DEV\aluguelfacil\.next\build\chunks\[root-of-the-server]__23ee922a._.js:155:35]
+    at run (turbopack:///[turbopack-node]/ipc/evaluate.ts:77:20) [C:\Users\renil\Documents\DEV\aluguelfacil\.next\build\chunks\[root-of-the-server]__cf236dd9._.js:429:26]
+    [at process.processTicksAndRejections (node:internal/process/task_queues:103:5)]
+
+Import trace:
+  Client Component Browser:
+    ./Documents/DEV/aluguelfacil/src/app/globals.css [Client Component Browser]
+    ./Documents/DEV/aluguelfacil/src/app/layout.tsx [Server Component]
+
+
+    at Module.init (turbopack:///[turbopack-node]/transforms/postcss.ts:43:33) [C:\Users\renil\Documents\DEV\aluguelfacil\.next\build\chunks\[root-of-the-server]__23ee922a._.js:155:35])
+    at run (turbopack:///[turbopack-node]/ipc/evaluate.ts:77:20) [C:\Users\renil\Documents\DEV\aluguelfacil\.next\build\chunks\[root-of-the-server]__cf236dd9._.js:429:26])

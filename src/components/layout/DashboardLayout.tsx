@@ -1,13 +1,16 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
+"use client";
+
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { 
-  Home, 
-  Building2, 
-  Users, 
-  Receipt, 
-  Settings, 
-  LogOut, 
+import {
+  Home,
+  Building2,
+  Users,
+  Receipt,
+  Settings,
+  LogOut,
   Menu,
   Plus
 } from "lucide-react";
@@ -28,13 +31,13 @@ const menuItems = [
 
 function NavItem({ item, isActive, onClick }: { item: typeof menuItems[0]; isActive: boolean; onClick?: () => void }) {
   return (
-    <Link 
-      to={item.href} 
+    <Link
+      href={item.href}
       onClick={onClick}
       className={cn(
         "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
-        isActive 
-          ? "bg-blue-50 text-blue-500" 
+        isActive
+          ? "bg-blue-50 text-blue-500"
           : "text-muted-foreground hover:bg-blue-50 hover:text-accent-foreground"
       )}
       aria-current={isActive ? "page" : undefined}
@@ -47,11 +50,11 @@ function NavItem({ item, isActive, onClick }: { item: typeof menuItems[0]; isAct
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const location = useLocation();
-  const navigate = useNavigate();
+  const pathname = usePathname();
+  const router = useRouter();
 
   const handleLogout = () => {
-    navigate("/");
+    router.push("/");
   };
 
   return (
@@ -65,20 +68,20 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
             <span className="font-display text-xl font-semibold">Aluga Fácil</span>
           </div>
-          
+
           <nav className="flex-1 space-y-1 p-4" aria-label="Menu do painel">
             {menuItems.map((item) => (
-              <NavItem 
-                key={item.href} 
-                item={item} 
-                isActive={location.pathname === item.href}
+              <NavItem
+                key={item.href}
+                item={item}
+                isActive={pathname === item.href}
               />
             ))}
           </nav>
-          
+
           <div className="border-t border-border/40 p-4">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               className="w-full justify-start text-red-400 hover:text-red-500 hover:bg-red-50"
               onClick={handleLogout}
             >
@@ -98,7 +101,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
             <span className="font-display text-lg font-semibold">Aluga Fácil</span>
           </div>
-          
+
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" aria-label="Abrir menu">
@@ -110,21 +113,21 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 <div className="flex h-16 items-center gap-2 border-b border-border/40 px-6">
                   <span className="font-display text-lg font-semibold">Menu</span>
                 </div>
-                
+
                 <nav className="flex-1 space-y-1 p-4" aria-label="Menu mobile">
                   {menuItems.map((item) => (
-                    <NavItem 
-                      key={item.href} 
-                      item={item} 
-                      isActive={location.pathname === item.href}
+                    <NavItem
+                      key={item.href}
+                      item={item}
+                      isActive={pathname === item.href}
                       onClick={() => setIsOpen(false)}
                     />
                   ))}
                 </nav>
-                
+
                 <div className="border-t border-border/40 p-4">
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     className="w-full justify-start text-red-400"
                     onClick={handleLogout}
                   >

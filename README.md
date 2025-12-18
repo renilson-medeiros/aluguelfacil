@@ -1,73 +1,220 @@
-# Welcome to your Lovable project
+# AluguelFácil 🏠
 
-## Project info
+Sistema de gerenciamento de imóveis para aluguel, desenvolvido com Next.js, TypeScript e Supabase.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## 🚀 Tecnologias
 
-## How can I edit this code?
+- **Framework**: Next.js 14 (App Router)
+- **Linguagem**: TypeScript
+- **Banco de Dados**: Supabase (PostgreSQL)
+- **Autenticação**: Supabase Auth
+- **Estilização**: Tailwind CSS + shadcn/ui
+- **Validações**: Zod + validadores customizados
+- **Upload de Arquivos**: Supabase Storage
 
-There are several ways of editing your application.
+## ✨ Funcionalidades
 
-**Use Lovable**
+### Autenticação
+- ✅ Registro de usuários com validação de CPF
+- ✅ Login/Logout
+- ✅ Validação de força de senha
+- ✅ Proteção de rotas com middleware
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+### Gestão de Imóveis
+- ✅ Cadastro de imóveis com fotos
+- ✅ Edição e exclusão
+- ✅ Upload de múltiplas fotos (Supabase Storage)
+- ✅ Visualização pública de imóveis
+- ✅ Máscaras de input (CEP, valores monetários)
 
-Changes made via Lovable will be committed automatically to this repo.
+### Gestão de Inquilinos
+- ✅ Cadastro de inquilinos
+- ✅ Vinculação a imóveis
+- ✅ Controle de contratos
+- ✅ Máscaras de input (CPF, telefone)
 
-**Use your preferred IDE**
+### Comprovantes
+- ✅ Geração de comprovantes de pagamento
+- ✅ Comprovantes de residência
+- ✅ Histórico de comprovantes
+- ✅ Preview em tempo real
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### UX/UI
+- ✅ DatePicker customizado (fecha automaticamente)
+- ✅ Selects estilizados (shadcn/ui)
+- ✅ Navegação com router.back() (botões voltar inteligentes)
+- ✅ Loading states e empty states
+- ✅ Feedback visual de validações
+- ✅ Design responsivo
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 📁 Estrutura do Projeto
 
-Follow these steps:
+```
+aluguelfacil/
+├── src/
+│   ├── app/                    # App Router (Next.js 14)
+│   │   ├── dashboard/          # Páginas do dashboard
+│   │   ├── login/              # Página de login
+│   │   └── registro/           # Página de registro
+│   ├── components/
+│   │   ├── layout/             # Header, Footer
+│   │   └── ui/                 # Componentes shadcn/ui
+│   ├── contexts/
+│   │   └── AuthContext.tsx    # Contexto de autenticação
+│   ├── lib/
+│   │   ├── supabase/           # Clientes Supabase
+│   │   │   ├── client.ts       # Browser client
+│   │   │   ├── server.ts       # Server client
+│   │   │   └── middleware.ts   # Middleware client
+│   │   └── validators.ts       # Validadores centralizados
+│   └── modules/                # Módulos/páginas
+│       └── dashboard/          # Componentes do dashboard
+├── docs/                       # Documentação do projeto
+│   ├── task.md                 # Checklist de tarefas
+│   └── walkthrough.md          # Histórico de mudanças
+└── public/                     # Arquivos estáticos
+```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+## 🔧 Instalação
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### Pré-requisitos
 
-# Step 3: Install the necessary dependencies.
-npm i
+- Node.js 18+
+- npm ou yarn
+- Conta no Supabase
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+### Passo a Passo
+
+1. **Clone o repositório**
+```bash
+git clone https://github.com/seu-usuario/aluguelfacil.git
+cd aluguelfacil
+```
+
+2. **Instale as dependências**
+```bash
+npm install
+```
+
+3. **Configure as variáveis de ambiente**
+
+Crie um arquivo `.env.local` na raiz do projeto:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=sua_url_do_supabase
+NEXT_PUBLIC_SUPABASE_ANON_KEY=sua_chave_anonima
+```
+
+4. **Configure o banco de dados**
+
+Execute o SQL do arquivo `SQL.sql` no seu projeto Supabase para criar as tabelas e políticas RLS.
+
+5. **Crie o bucket de storage**
+
+No Supabase Storage, crie um bucket chamado `imoveis-fotos` com as seguintes políticas:
+- Upload: Apenas usuários autenticados
+- Select: Público
+- Delete: Apenas o proprietário
+
+6. **Rode o projeto**
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Acesse: `http://localhost:3000`
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 🗄️ Banco de Dados
 
-**Use GitHub Codespaces**
+### Tabelas Principais
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- **profiles**: Dados dos usuários (estende auth.users)
+- **imoveis**: Cadastro de imóveis
+- **inquilinos**: Cadastro de inquilinos
+- **comprovantes**: Comprovantes gerados
 
-## What technologies are used for this project?
+### Row Level Security (RLS)
 
-This project is built with:
+Todas as tabelas têm RLS habilitado:
+- Usuários só veem seus próprios dados
+- Imóveis públicos são visíveis para todos
+- Inquilinos e comprovantes são privados
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 🔒 Segurança
 
-## How can I deploy this project?
+- ✅ Row Level Security (RLS) no Supabase
+- ✅ Validação de força de senha (8+ caracteres, maiúscula, minúscula, número)
+- ✅ Validação de CPF
+- ✅ Sanitização de inputs
+- ✅ Proteção de rotas com middleware
+- ✅ Upload de arquivos validado (tamanho e tipo)
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+## 📝 Scripts Disponíveis
 
-## Can I connect a custom domain to my Lovable project?
+```bash
+npm run dev          # Desenvolvimento
+npm run build        # Build de produção
+npm run start        # Servidor de produção
+npm run lint         # Linter
+```
 
-Yes, you can!
+## 🎨 Componentes Customizados
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### DatePicker
+Componente de seleção de data que fecha automaticamente ao selecionar.
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+```tsx
+<DatePicker
+  date={formData.startDate}
+  onSelect={(date) => setFormData(prev => ({ ...prev, startDate: date }))}
+  placeholder="Selecione a data"
+/>
+```
+
+### Validadores
+
+```tsx
+import { validarCPF, validarSenha, formatarTelefone } from "@/lib/validators";
+
+const cpfValido = validarCPF("123.456.789-00");
+const senhaValidacao = validarSenha("MinhaSenh@123");
+const telefoneFormatado = formatarTelefone("11999999999");
+```
+
+## 📚 Documentação
+
+Consulte a pasta `docs/` para:
+- **task.md**: Checklist de tarefas implementadas
+- **walkthrough.md**: Histórico detalhado de mudanças
+
+## 🚧 Próximos Passos
+
+- [ ] Implementar rate limiting
+- [ ] Adicionar testes automatizados
+- [ ] Implementar CAPTCHA no registro
+- [ ] Sistema de notificações por email
+- [ ] Geração de PDF de comprovantes
+- [ ] Dashboard com gráficos
+
+## 🤝 Contribuindo
+
+1. Fork o projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/MinhaFeature`)
+3. Commit suas mudanças (`git commit -m 'Adiciona MinhaFeature'`)
+4. Push para a branch (`git push origin feature/MinhaFeature`)
+5. Abra um Pull Request
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT.
+
+## 👤 Autor
+
+Desenvolvido com ❤️ por [Seu Nome]
+
+---
+
+**Nota sobre Performance**: O projeto está otimizado para desenvolvimento. Para produção, considere:
+- Implementar cache de queries do Supabase
+- Otimizar imagens com Next.js Image
+- Implementar lazy loading de componentes
+- Usar React.memo em componentes pesados

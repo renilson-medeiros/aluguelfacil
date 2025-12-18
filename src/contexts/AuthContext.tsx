@@ -26,9 +26,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // ===============================
+  
   // INIT + AUTH LISTENER
-  // ===============================
   useEffect(() => {
     const init = async () => {
       const { data } = await supabase.auth.getSession();
@@ -65,9 +64,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  // ===============================
-  // LOAD PROFILE WITH RETRY (🔥 FIX)
-  // ===============================
+  
+  // LOAD PROFILE WITH RETRY
   const loadProfileWithRetry = async (userId: string, retries = 5) => {
     for (let i = 0; i < retries; i++) {
       const { data, error } = await supabase
@@ -93,9 +91,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setProfile(null);
   };
 
-  // ===============================
+  
   // LOGIN
-  // ===============================
   const signIn = async (email: string, password: string) => {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -110,9 +107,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // ===============================
+  
   // SIGNUP (trigger cuida do profile)
-  // ===============================
   const signUp = async (email: string, password: string, userData: SignUpData) => {
     if (!validarCPF(userData.cpf)) {
       throw new Error('CPF inválido');
@@ -133,9 +129,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (error) throw error;
   };
 
-  // ===============================
+  
   // LOGOUT
-  // ===============================
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
@@ -161,18 +156,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
-// ===============================
+
 // HOOK
-// ===============================
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) throw new Error('useAuth deve ser usado dentro do AuthProvider');
   return context;
 };
 
-// ===============================
+
 // CPF VALIDATION
-// ===============================
 function validarCPF(cpf: string): boolean {
   cpf = cpf.replace(/[^\d]/g, '');
   if (cpf.length !== 11) return false;

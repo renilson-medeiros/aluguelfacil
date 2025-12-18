@@ -1,0 +1,276 @@
+import Link from "next/link";
+import { useEffect, useState } from "react";
+
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Receipt,
+  Plus,
+  Search,
+  Download,
+  Eye,
+  Calendar,
+  User,
+  Building2,
+  Loader2,
+  AlertCircle
+} from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
+
+interface ReceiptData {
+  id: string;
+  inquilino_id: string;
+  imovel_id: string;
+  tipo: 'pagamento' | 'residencia';
+  mes_referencia: string;
+  valor: number | null;
+  descricao: string | null;
+  pdf_url: string | null;
+  created_at: string;
+  inquilinos: {
+    nome_completo: string;
+  } | null;
+  imoveis: {
+    titulo: string;
+    proprietario_id: string;
+  } | null;
+}
+
+export default function ReceiptsList() {
+  const { user } = useAuth();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [receipts, setReceipts] = useState<ReceiptData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user) {
+      loadReceipts();
+    }
+  }, [user]);
+
+  const loadReceipts = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const { data, error: fetchError } = await supabase
+        .from('comprovantes')
+        .select(`
+          *,
+          inquilinos (
+            nome_completo
+          ),
+          imoveis!inner (
+            titulo,
+            proprietario_id
+          )
+        `)
+        .eq('imoveis.proprietario_id', user?.id)
+        .order('mes_referencia', { ascending: false });
+
+      if (fetchError) throw fetchError;
+
+      setReceipts(data || []);
+    } catch (err: any) {
+      console.error('Erro ao carregar comprovantes:', err);
+      setError(err.message || 'Erro ao carregar comprovantes');
+      toast.error('Erro ao carregar comprovantes');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const filteredReceipts = receipts.filter(
+    (receipt) =>
+      (receipt.inquilinos?.nome_completo || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (receipt.imoveis?.titulo || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      receipt.mes_referencia.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleDownload = async (pdfUrl: string | null) => {
+    if (!pdfUrl) {
+      toast.error('PDF não disponível');
+      return;
+    }
+
+    try {
+      window.open(pdfUrl, '_blank');
+    } catch (err) {
+      toast.error('Erro ao abrir PDF');
+    }
+  };
+
+  const formatReferenceMonth = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-blue-500 mx-auto mb-4" />
+          <p className="text-muted-foreground">Carregando comprovantes...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="py-12">
+        <CardContent className="flex flex-col items-center justify-center text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-50">
+            <AlertCircle className="h-8 w-8 text-red-500" />
+          </div>
+          <h3 className="mt-4 font-display text-lg font-semibold">Erro ao carregar dados</h3>
+          <p className="mt-1 text-sm text-muted-foreground">{error}</p>
+          <Button onClick={loadReceipts} variant="outline" className="mt-4">
+            Tentar novamente
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="font-display text-2xl font-bold sm:text-3xl">Comprovantes</h1>
+            <p className="text-muted-foreground">
+              {receipts.length === 0
+                ? 'Nenhum comprovante gerado'
+                : `${receipts.length} comprovante${receipts.length !== 1 ? 's' : ''} gerado${receipts.length !== 1 ? 's' : ''}`
+              }
+            </p>
+          </div>
+          <Link href="/dashboard/comprovantes/novo">
+            <Button className="gap-2 bg-blue-500 hover:bg-blue-400">
+              <Plus className="h-4 w-4 " aria-hidden="true" />
+              Novo comprovante
+            </Button>
+          </Link>
+        </div>
+
+        {/* Search */}
+        {receipts.length > 0 && (
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+            <Input
+              type="search"
+              placeholder="Buscar comprovante..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+              aria-label="Buscar comprovante"
+            />
+          </div>
+        )}
+
+        {/* Receipts List */}
+        {filteredReceipts.length > 0 ? (
+          <div className="grid gap-4">
+            {filteredReceipts.map((receipt, index) => (
+              <Card
+                key={receipt.id}
+                className="transition-all duration-300 hover:shadow-md animate-fade-in"
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                <CardContent className="p-6">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-start gap-4">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent text-blue-500">
+                        <Receipt className="h-6 w-6" aria-hidden="true" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-display font-semibold capitalize">
+                            {formatReferenceMonth(receipt.mes_referencia)}
+                          </h3>
+                          <Badge variant="outline" className="bg-success/10 text-success border-success/20">
+                            {receipt.tipo === 'pagamento' ? 'Pagamento' : 'Residência'}
+                          </Badge>
+                        </div>
+
+                        <div className="mt-2 flex flex-wrap gap-4 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-1.5">
+                            <User className="h-4 w-4" aria-hidden="true" />
+                            <span>{receipt.inquilinos?.nome_completo || 'Inquilino não encontrado'}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <Building2 className="h-4 w-4" aria-hidden="true" />
+                            <span>{receipt.imoveis?.titulo || 'Imóvel não encontrado'}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <Calendar className="h-4 w-4" aria-hidden="true" />
+                            <span>{new Date(receipt.created_at).toLocaleDateString('pt-BR')}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                      {receipt.valor && (
+                        <p className="font-display text-xl font-bold text-primary">
+                          R$ {receipt.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-1">
+                        <Link href={`/dashboard/comprovantes/${receipt.id}`}>
+                          <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Ver comprovante">
+                            <Eye className="h-4 w-4 text-blue-500" />
+                          </Button>
+                        </Link>
+                        {receipt.pdf_url && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            aria-label="Baixar comprovante"
+                            onClick={() => handleDownload(receipt.pdf_url)}
+                          >
+                            <Download className="h-4 w-4 text-blue-500" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <Card className="py-12">
+            <CardContent className="flex flex-col items-center justify-center text-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-accent">
+                <Receipt className="h-8 w-8 text-muted-foreground" aria-hidden="true" />
+              </div>
+              <h3 className="mt-4 font-display text-lg font-semibold">Nenhum comprovante encontrado</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {searchQuery
+                  ? "Tente buscar com outros termos"
+                  : "Você ainda não gerou nenhum comprovante. Gere comprovantes de pagamento ou residência para seus inquilinos."}
+              </p>
+              {!searchQuery && (
+                <Link href="/dashboard/comprovantes/novo" className="mt-4">
+                  <Button className="gap-2 bg-blue-500 hover:bg-blue-400">
+                    <Plus className="h-4 w-4" aria-hidden="true" />
+                    Gerar comprovante
+                  </Button>
+                </Link>
+              )}
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </>
+  );
+}
