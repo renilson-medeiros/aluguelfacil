@@ -10,7 +10,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
-import { validarTelefone, formatarTelefone } from "@/lib/validators";
+import { validarTelefone, formatarTelefone, formatarCPF } from "@/lib/validators";
 
 export default function Settings() {
   const { user, profile } = useAuth();
@@ -28,7 +28,7 @@ export default function Settings() {
       setUserData({
         nome_completo: profile.nome_completo || "",
         email: profile.email || "",
-        telefone: profile.telefone || ""
+        telefone: profile.telefone ? formatarTelefone(profile.telefone) : ""
       });
       setIsLoading(false);
     } else if (user) {
@@ -163,7 +163,7 @@ export default function Settings() {
                 <Label htmlFor="cpf">CPF</Label>
                 <Input
                   id="cpf"
-                  value={profile?.cpf || ""}
+                  value={profile?.cpf ? formatarCPF(profile.cpf) : ""}
                   disabled
                   className="bg-muted cursor-not-allowed"
                   title="O CPF não pode ser alterado"

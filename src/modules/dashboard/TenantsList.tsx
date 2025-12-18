@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback, memo } from "react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -60,7 +60,7 @@ export default function TenantsList() {
     }
   }, [user]);
 
-  const loadTenants = async () => {
+  const loadTenants = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -68,7 +68,16 @@ export default function TenantsList() {
       const { data, error: fetchError } = await supabase
         .from('inquilinos')
         .select(`
-          *,
+          id,
+          nome_completo,
+          cpf,
+          telefone,
+          email,
+          imovel_id,
+          dia_vencimento,
+          data_inicio,
+          data_fim,
+          status,
           imoveis!inner (
             titulo,
             endereco_rua,
@@ -77,11 +86,18 @@ export default function TenantsList() {
           )
         `)
         .eq('imoveis.proprietario_id', user?.id)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(50);
 
       if (fetchError) throw fetchError;
 
-      setTenants(data || []);
+      // Transformar dados para corresponder à interface
+      const transformedData: Tenant[] = (data || []).map(item => ({
+        ...item,
+        imoveis: Array.isArray(item.imoveis) && item.imoveis.length > 0 ? item.imoveis[0] : null
+      }));
+
+      setTenants(transformedData);
     } catch (err: any) {
       console.error('Erro ao carregar inquilinos:', err);
       setError(err.message || 'Erro ao carregar inquilinos');
@@ -89,14 +105,16 @@ export default function TenantsList() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user?.id]);
 
-  const filteredTenants = tenants.filter(
-    (tenant) =>
-      tenant.nome_completo.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tenant.cpf.includes(searchQuery) ||
-      (tenant.imoveis?.titulo || '').toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredTenants = useMemo(() => {
+    return tenants.filter(
+      (tenant) =>
+        tenant.nome_completo.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        tenant.cpf.includes(searchQuery) ||
+        (tenant.imoveis?.titulo || '').toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [tenants, searchQuery]);
 
   if (isLoading) {
     return (

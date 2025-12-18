@@ -1,5 +1,7 @@
 // src/pages/dashboard/PropertiesList.tsx
 import Link from "next/link";
+import Image from "next/image";
+import { useEffect, useState, useMemo, useCallback, memo } from "react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,7 +34,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 
@@ -64,10 +65,20 @@ export default function PropertiesList() {
       const { data, error } = await supabase
         .from('imoveis')
         .select(`
-          *,
+          id,
+          titulo,
+          endereco_rua,
+          endereco_numero,
+          endereco_bairro,
+          endereco_cidade,
+          valor_aluguel,
+          status,
+          fotos,
+          created_at,
           inquilinos(nome_completo, status)
         `)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(50); // Limitar a 50 imóveis para melhor performance
 
       if (error) throw error;
 
@@ -98,21 +109,25 @@ export default function PropertiesList() {
     }
   };
 
-  const filteredProperties = properties.filter(
-    (property) =>
-      property.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      property.address.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Usar useMemo para evitar recalcular filteredProperties em cada render
+  const filteredProperties = useMemo(() => {
+    return properties.filter(
+      (property) =>
+        property.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        property.address.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [properties, searchQuery]);
 
-  const handleShare = (property: Property) => {
+  // Usar useCallback para evitar recriar funções em cada render
+  const handleShare = useCallback((property: Property) => {
     const url = `${window.location.origin}/imovel/${property.id}`;
     navigator.clipboard.writeText(url);
     toast.success("Link copiado!", {
       description: "Compartilhe com potenciais inquilinos.",
     });
-  };
+  }, []);
 
-  const handleDelete = async () => {
+  const handleDelete = useCallback(async () => {
     if (!deleteId) return;
 
     try {
@@ -158,7 +173,7 @@ export default function PropertiesList() {
       setDeleting(false);
       setDeleteId(null);
     }
-  };
+  }, [deleteId]);
 
   return (
     <>
@@ -207,91 +222,13 @@ export default function PropertiesList() {
         ) : filteredProperties.length > 0 ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {filteredProperties.map((property, index) => (
-              <Card
+              <PropertyCard
                 key={property.id}
-                className="group overflow-hidden transition-all duration-300 hover:shadow-lg animate-fade-in"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <div className="relative aspect-video overflow-hidden">
-                  <img
-                    src={property.image}
-                    alt={property.title}
-                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
-                  <span
-                    className={`absolute right-3 top-3 rounded-full px-3 py-1 text-xs font-medium ${property.status === "ocupado"
-                      ? "bg-success text-success-foreground"
-                      : "bg-warning text-warning-foreground"
-                      }`}
-                  >
-                    {property.status === "ocupado" ? "Ocupado" : "Disponível"}
-                  </span>
-                </div>
-                <CardContent className="p-4">
-                  <h3 className="font-display font-semibold">{property.title}</h3>
-                  <div className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-                    <MapPin className="h-3 w-3" aria-hidden="true" />
-                    <span className="line-clamp-1">{property.address}</span>
-                  </div>
-                  <div className="mt-3 flex items-center justify-between">
-                    <p className="font-semibold text-primary">
-                      R$ {property.rent.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/mês
-                    </p>
-                    <div className="flex items-center gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => handleShare(property)}
-                        aria-label="Compartilhar imóvel"
-                      >
-                        <Share2 className="h-4 w-4 text-blue-500" />
-                      </Button>
-                      <Link href={`/imovel/${property.id}`}>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Ver imóvel">
-                          <Eye className="h-4 w-4 text-blue-500" />
-                        </Button>
-                      </Link>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Mais opções">
-                            <MoreHorizontal className="h-4 w-4 text-blue-500" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-popover">
-                          <DropdownMenuItem asChild>
-                            <Link href={`/dashboard/imoveis/${property.id}/editar`} className="cursor-pointer">
-                              <Edit className="mr-2 h-4 w-4 text-blue-500" />
-                              Editar
-                            </Link>
-                          </DropdownMenuItem>
-                          {property.status === "disponível" && (
-                            <DropdownMenuItem asChild>
-                              <Link href={`/dashboard/imoveis/${property.id}/inquilino`} className="cursor-pointer">
-                                <Plus className="mr-2 h-4 w-4" />
-                                Cadastrar inquilino
-                              </Link>
-                            </DropdownMenuItem>
-                          )}
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            className="cursor-pointer text-red-600 focus:text-red-600"
-                            onClick={() => setDeleteId(property.id)}
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Excluir
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </div>
-                  {property.tenant && (
-                    <p className="mt-2 text-sm text-muted-foreground">
-                      Inquilino: {property.tenant}
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
+                property={property}
+                index={index}
+                onShare={handleShare}
+                onDelete={setDeleteId}
+              />
             ))}
           </div>
         ) : (
@@ -343,3 +280,103 @@ export default function PropertiesList() {
     </>
   );
 }
+
+// Componente PropertyCard com React.memo para evitar re-renders desnecessários
+interface PropertyCardProps {
+  property: Property;
+  index: number;
+  onShare: (property: Property) => void;
+  onDelete: (id: string) => void;
+}
+
+const PropertyCard = memo(({ property, index, onShare, onDelete }: PropertyCardProps) => {
+  return (
+    <Card
+      className="group overflow-hidden transition-all duration-300 hover:shadow-lg animate-fade-in"
+      style={{ animationDelay: `${index * 100}ms` }}
+    >
+      <div className="relative aspect-video overflow-hidden">
+        <Image
+          src={property.image}
+          alt={property.title}
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          className="object-cover transition-transform duration-300 group-hover:scale-105"
+          loading="lazy"
+        />
+        <span
+          className={`absolute right-3 top-3 rounded-full px-3 py-1 text-xs font-medium ${property.status === "ocupado"
+            ? "bg-success text-success-foreground"
+            : "bg-warning text-warning-foreground"
+            }`}
+        >
+          {property.status === "ocupado" ? "Ocupado" : "Disponível"}
+        </span>
+      </div>
+      <CardContent className="p-4">
+        <h3 className="font-display font-semibold">{property.title}</h3>
+        <div className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
+          <MapPin className="h-3 w-3" aria-hidden="true" />
+          <span className="line-clamp-1">{property.address}</span>
+        </div>
+        <div className="mt-3 flex items-center justify-between">
+          <p className="font-semibold text-primary">
+            R$ {property.rent.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/mês
+          </p>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => onShare(property)}
+              aria-label="Compartilhar imóvel"
+            >
+              <Share2 className="h-4 w-4 text-blue-500" />
+            </Button>
+            <Link href={`/imovel/${property.id}`}>
+              <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Ver imóvel">
+                <Eye className="h-4 w-4 text-blue-500" />
+              </Button>
+            </Link>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Mais opções">
+                  <MoreHorizontal className="h-4 w-4 text-blue-500" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-popover">
+                <DropdownMenuItem asChild>
+                  <Link href={`/dashboard/imoveis/${property.id}/editar`} className="cursor-pointer">
+                    <Edit className="mr-2 h-4 w-4 text-blue-500" />
+                    Editar
+                  </Link>
+                </DropdownMenuItem>
+                {property.status === "disponível" && (
+                  <DropdownMenuItem asChild>
+                    <Link href={`/dashboard/imoveis/${property.id}/inquilino`} className="cursor-pointer">
+                      <Plus className="mr-2 h-4 w-4" />
+                      Cadastrar inquilino
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="cursor-pointer text-red-600 focus:text-red-600"
+                  onClick={() => onDelete(property.id)}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Excluir
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+        {property.tenant && (
+          <p className="mt-2 text-sm text-muted-foreground">
+            Inquilino: {property.tenant}
+          </p>
+        )}
+      </CardContent>
+    </Card>
+  );
+});

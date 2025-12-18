@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -53,7 +53,7 @@ export default function ReceiptsList() {
     }
   }, [user]);
 
-  const loadReceipts = async () => {
+  const loadReceipts = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -61,7 +61,15 @@ export default function ReceiptsList() {
       const { data, error: fetchError } = await supabase
         .from('comprovantes')
         .select(`
-          *,
+          id,
+          inquilino_id,
+          imovel_id,
+          tipo,
+          mes_referencia,
+          valor,
+          descricao,
+          pdf_url,
+          created_at,
           inquilinos (
             nome_completo
           ),
@@ -71,11 +79,19 @@ export default function ReceiptsList() {
           )
         `)
         .eq('imoveis.proprietario_id', user?.id)
-        .order('mes_referencia', { ascending: false });
+        .order('mes_referencia', { ascending: false })
+        .limit(50);
 
       if (fetchError) throw fetchError;
 
-      setReceipts(data || []);
+      // Transformar dados para corresponder à interface
+      const transformedData: ReceiptData[] = (data || []).map(item => ({
+        ...item,
+        inquilinos: Array.isArray(item.inquilinos) && item.inquilinos.length > 0 ? item.inquilinos[0] : null,
+        imoveis: Array.isArray(item.imoveis) && item.imoveis.length > 0 ? item.imoveis[0] : null
+      }));
+
+      setReceipts(transformedData);
     } catch (err: any) {
       console.error('Erro ao carregar comprovantes:', err);
       setError(err.message || 'Erro ao carregar comprovantes');
@@ -83,16 +99,18 @@ export default function ReceiptsList() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user?.id]);
 
-  const filteredReceipts = receipts.filter(
-    (receipt) =>
-      (receipt.inquilinos?.nome_completo || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (receipt.imoveis?.titulo || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      receipt.mes_referencia.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredReceipts = useMemo(() => {
+    return receipts.filter(
+      (receipt) =>
+        (receipt.inquilinos?.nome_completo || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (receipt.imoveis?.titulo || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        receipt.mes_referencia.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [receipts, searchQuery]);
 
-  const handleDownload = async (pdfUrl: string | null) => {
+  const handleDownload = useCallback(async (pdfUrl: string | null) => {
     if (!pdfUrl) {
       toast.error('PDF não disponível');
       return;
@@ -103,7 +121,7 @@ export default function ReceiptsList() {
     } catch (err) {
       toast.error('Erro ao abrir PDF');
     }
-  };
+  }, []);
 
   const formatReferenceMonth = (dateString: string) => {
     const date = new Date(dateString);
