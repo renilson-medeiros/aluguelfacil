@@ -116,14 +116,14 @@ export default function Dashboard() {
     },
   ];
 
-  // 🔥 PEGAR O PRIMEIRO NOME
+  // PEGAR O PRIMEIRO NOME
   const firstName = profile?.nome_completo?.split(' ')[0] || 'Usuário';
 
-  // 🔥 MOSTRAR LOADING ENQUANTO AUTH CARREGA
+  // MOSTRAR LOADING ENQUANTO AUTH CARREGA
   if (authLoading) {
     return (
       <>
-        <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
           <div className="text-center">
             <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
             <p className="text-muted-foreground">Carregando...</p>

@@ -78,7 +78,7 @@ export default function PropertiesList() {
           inquilinos(nome_completo, status)
         `)
         .order('created_at', { ascending: false })
-        .limit(50); // Limitar a 50 imóveis para melhor performance
+        .limit(50);
 
       if (error) throw error;
 
@@ -96,7 +96,7 @@ export default function PropertiesList() {
           tenant: activeInquilino?.nome_completo || null,
           image: (imovel.fotos && imovel.fotos.length > 0)
             ? imovel.fotos[0]
-            : "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&h=300&fit=crop"
+            : "/preview.png"
         };
       });
 
@@ -306,8 +306,8 @@ const PropertyCard = memo(({ property, index, onShare, onDelete }: PropertyCardP
         />
         <span
           className={`absolute right-3 top-3 rounded-full px-3 py-1 text-xs font-medium ${property.status === "ocupado"
-            ? "bg-success text-success-foreground"
-            : "bg-warning text-warning-foreground"
+            ? "bg-red-100 text-red-500"
+            : "bg-green-100 text-green-500"
             }`}
         >
           {property.status === "ocupado" ? "Ocupado" : "Disponível"}

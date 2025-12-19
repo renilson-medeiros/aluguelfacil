@@ -164,7 +164,7 @@ export default function PropertyDetail() {
         title: imovel.titulo || `${imovel.endereco_rua}, ${imovel.endereco_numero}`,
         images: imovel.fotos && imovel.fotos.length > 0
           ? imovel.fotos
-          : ["https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&h=600&fit=crop"],
+          : ["/preview.png"],
         address: {
           street: imovel.endereco_rua,
           number: imovel.endereco_numero,
