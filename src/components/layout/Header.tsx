@@ -11,8 +11,10 @@ import { useAuth } from "@/contexts/AuthContext";
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const isAuthPage = pathname === "/login" || pathname === "/registro";
+  const isPropertyPublicPage = pathname.startsWith("/imovel/");
+  const showNav = user || (!isPropertyPublicPage && !isAuthPage);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -30,7 +32,7 @@ export function Header() {
 
         {/* Desktop Navigation */}
         <div className="hidden items-center gap-4 md:flex">
-          {!isAuthPage && (
+          {showNav && !isAuthPage && (
             <>
               {user ? (
                 <Link href="/dashboard">
@@ -58,47 +60,49 @@ export function Header() {
         </div>
 
         {/* Mobile Navigation */}
-        <Sheet open={isOpen} onOpenChange={setIsOpen}>
-          <SheetTrigger asChild className="md:hidden">
-            <Button variant="ghost" size="icon" aria-label="Abrir menu">
-              <Menu className="h-5 w-5" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="right" className="w-full max-w-96 sm:w-[320px]">
-            <div className="flex flex-col gap-6 pt-6">
-              <div className="flex items-center justify-between">
-                <span className="font-display text-lg font-semibold">Menu</span>
+        {showNav && (
+          <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild className="md:hidden">
+              <Button variant="ghost" size="icon" aria-label="Abrir menu">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-full max-w-96 sm:w-[320px]">
+              <div className="flex flex-col gap-6 pt-6">
+                <div className="flex items-center justify-between">
+                  <span className="font-display text-lg font-semibold">Menu</span>
+                </div>
+                <nav className="flex flex-col gap-3" aria-label="Menu mobile">
+                  {!isAuthPage && (
+                    <>
+                      {user ? (
+                        <Link href="/dashboard" onClick={() => setIsOpen(false)}>
+                          <Button className="w-full font-medium bg-blue-500 hover:bg-blue-400 gap-2">
+                            <LayoutDashboard className="h-4 w-4" />
+                            Dashboard
+                          </Button>
+                        </Link>
+                      ) : (
+                        <>
+                          <Link href="/login" onClick={() => setIsOpen(false)}>
+                            <Button variant="ghost" className="w-full justify-start font-medium">
+                              Entrar
+                            </Button>
+                          </Link>
+                          <Link href="/registro" onClick={() => setIsOpen(false)}>
+                            <Button className="w-full font-medium bg-blue-500 hover:bg-blue-400">
+                              Começar agora
+                            </Button>
+                          </Link>
+                        </>
+                      )}
+                    </>
+                  )}
+                </nav>
               </div>
-              <nav className="flex flex-col gap-3" aria-label="Menu mobile">
-                {!isAuthPage && (
-                  <>
-                    {user ? (
-                      <Link href="/dashboard" onClick={() => setIsOpen(false)}>
-                        <Button className="w-full font-medium bg-blue-500 hover:bg-blue-400 gap-2">
-                          <LayoutDashboard className="h-4 w-4" />
-                          Dashboard
-                        </Button>
-                      </Link>
-                    ) : (
-                      <>
-                        <Link href="/login" onClick={() => setIsOpen(false)}>
-                          <Button variant="ghost" className="w-full justify-start font-medium">
-                            Entrar
-                          </Button>
-                        </Link>
-                        <Link href="/registro" onClick={() => setIsOpen(false)}>
-                          <Button className="w-full font-medium bg-blue-500 hover:bg-blue-400">
-                            Começar agora
-                          </Button>
-                        </Link>
-                      </>
-                    )}
-                  </>
-                )}
-              </nav>
-            </div>
-          </SheetContent>
-        </Sheet>
+            </SheetContent>
+          </Sheet>
+        )}
       </nav>
     </header>
   );

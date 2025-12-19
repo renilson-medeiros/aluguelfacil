@@ -26,6 +26,7 @@ import {
   Maximize,
   Loader2,
   ChevronLeft,
+  Info,
   ChevronRight
 } from "lucide-react";
 import {
@@ -40,6 +41,7 @@ import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Property {
   id: string;
@@ -88,6 +90,7 @@ export default function PropertyDetail() {
   const router = useRouter();
   const params = useParams();
   const id = Array.isArray(params?.id) ? params.id[0] : params?.id;
+  const { user } = useAuth();
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -273,15 +276,22 @@ export default function PropertyDetail() {
       <Header />
 
       <main className="flex-1 -px-4">
-        {/* Back button */}
+        {/* Navigation / Info text */}
         <div className="container px-4 py-4">
-          <button
-            onClick={() => router.back()}
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground cursor-pointer"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Voltar
-          </button>
+          {user ? (
+            <button
+              onClick={() => router.back()}
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground cursor-pointer"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Voltar
+            </button>
+          ) : (
+            <div className="flex items-center gap-2 text-muted-foreground py-2">
+              <Info className="w-4 h-4 text-blue-500" />
+              <span>Informações do Imóvel de {property.owner.name}</span>
+            </div>
+          )}
         </div>
 
         {/* Advanced Image Gallery */}

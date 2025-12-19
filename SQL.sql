@@ -380,5 +380,20 @@ USING (
 -- UPDATE profiles SET role = 'admin' WHERE email = 'renilson.medeiros96@outlook.com';
 
 -- =====================================================
+-- NOVAS POLÍTICAS: ACESSO PÚBLICO
+-- =====================================================
+
+-- Permitir que qualquer pessoa veja imóveis com status 'disponivel'
+CREATE POLICY "Qualquer pessoa pode ver imóveis disponíveis"
+ON imoveis FOR SELECT
+USING (status = 'disponivel');
+
+-- Permitir que qualquer pessoa veja informações básicas do proprietário
+-- (Necessário para exibir o nome e telefone do proprietário na página pública do imóvel)
+CREATE POLICY "Qualquer pessoa pode ver informações básicas do proprietário"
+ON profiles FOR SELECT
+USING (true);
+
+-- =====================================================
 -- FIM DO SCRIPT
 -- =====================================================
