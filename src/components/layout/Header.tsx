@@ -14,7 +14,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <nav className="container flex h-16 items-center justify-between" aria-label="Navegação principal">
+      <nav className="container px-4 flex h-16 items-center justify-between" aria-label="Navegação principal">
         <Link
           href="/"
           className="flex items-center gap-2 transition-opacity hover:opacity-80 focus-visible:opacity-80"
