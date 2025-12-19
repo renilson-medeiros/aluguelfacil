@@ -152,24 +152,24 @@ export default function Landing() {
                   </ul>
                 </div>
 
-                <Card className="border-primary/20 bg-card shadow-xl">
+                <Card className="border-blue-500/20 bg-gradient-to-t from-blue-500 to-blue-500/90 shadow-xl">
                   <CardContent className="p-8">
                     <div className="text-center">
-                      <p className="text-sm font-medium text-muted-foreground">Plano mensal</p>
+                      <p className="text-sm font-medium text-muted/80">Plano mensal</p>
                       <div className="mt-2 flex items-baseline justify-center gap-1">
-                        <span className="text-sm text-muted-foreground">R$</span>
-                        <span className="font-display text-5xl font-bold text-foreground">30</span>
-                        <span className="text-muted-foreground">/mês</span>
+                        <span className="text-sm text-muted/80">R$</span>
+                        <span className="font-display text-5xl font-bold text-background">30</span>
+                        <span className="text-muted/80">/mês</span>
                       </div>
-                      <p className="mt-2 text-sm text-muted-foreground">
+                      <p className="mt-2 text-sm text-muted/80">
                         Imóveis ilimitados • Inquilinos ilimitados
                       </p>
                       <Link href="/registro" className="mt-6 block">
-                        <Button size="lg" className="w-full text-base bg-blue-500 hover:bg-blue-400">
+                        <Button size="lg" className="w-full text-blue-500 bg-background hover:bg-background/90">
                           Começar agora
                         </Button>
                       </Link>
-                      <p className="mt-3 text-xs text-muted-foreground">
+                      <p className="mt-3 text-xs text-muted/60">
                         Cancele quando quiser, sem multa
                       </p>
                     </div>
