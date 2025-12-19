@@ -26,6 +26,19 @@ export default function TermsPage() {
                             Última atualização: {lastUpdate}
                         </p>
 
+                        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-6 mb-12">
+                            <h2 className="text-blue-950 font-bold mb-3 flex items-center gap-2">
+                                <FileText className="h-5 w-5" />
+                                Resumo Simplificado
+                            </h2>
+                            <ul className="space-y-2 text-sm text-blue-900/80">
+                                <li>• O Aluga Fácil é uma ferramenta de gestão, não uma imobiliária.</li>
+                                <li>• Você é o único responsável pelos seus imóveis e negociações.</li>
+                                <li>• Não cobramos comissões, apenas uma assinatura pelo uso da plataforma.</li>
+                                <li>• Seus dados são protegidos, mas as informações públicas do imóvel são acessíveis via link.</li>
+                            </ul>
+                        </div>
+
                         <div className="prose prose-slate max-w-none space-y-8 text-muted-foreground">
                             <section className="space-y-4">
                                 <h2 className="text-2xl font-bold text-foreground font-display">1. Aceitação dos Termos</h2>

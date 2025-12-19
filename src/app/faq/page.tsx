@@ -17,24 +17,24 @@ export default function FAQPage() {
             answer: "Não. O Aluga Fácil é uma plataforma de tecnologia que fornece ferramentas para locadores diretos gerenciarem seus próprios imóveis e inquilinos, sem a necessidade de intermediários ou taxas de administração imobiliária."
         },
         {
-            question: "Como os inquilinos entram em contato comigo?",
-            answer: "Ao compartilhar o link público do seu imóvel, o interessado verá um botão 'Falar com proprietário'. Ao clicar, ele será redirecionado diretamente para o seu WhatsApp com uma mensagem pré-preenchida sobre o imóvel."
+            question: "Como os interessados entram em contato?",
+            answer: "Ao compartilhar o link exclusivo do seu imóvel, o interessado terá acesso a todas as informações e ao botão 'Falar com proprietário'. O contato é feito diretamente via WhatsApp, sem intermediários, agilizando a sua negociação."
         },
         {
-            question: "É seguro cadastrar meus dados e de meus inquilinos?",
-            answer: "Sim. Utilizamos o Supabase como infraestrutura de banco de dados, que segue padrões rigorosos de segurança e criptografia. Seus dados e os de seus inquilinos são privados e protegidos por políticas de acesso (RLS)."
+            question: "Meus dados e os dos meus inquilinos estão seguros?",
+            answer: "Segurança é nossa prioridade. Utilizamos infraestrutura de ponta com o Supabase, garantindo que todas as informações sejam criptografadas e protegidas por rigorosas políticas de acesso (RLS). Seus dados são privados e nunca compartilhados com terceiros."
         },
         {
             question: "Como funciona a geração de comprovantes?",
             answer: "Após vincular um inquilino a um imóvel, você pode acessar a seção de Comprovantes. Basta selecionar o inquilino, o mês de referência e os valores. O sistema gera um PDF profissional que você pode baixar ou enviar direto pelo WhatsApp."
         },
         {
-            question: "Posso cadastrar quantos imóveis eu quiser?",
-            answer: "No momento, durante nossa fase beta, o cadastro de imóveis é ilimitado para que você possa testar todas as funcionalidades da plataforma livremente."
+            question: "Posso cadastrar quantos imóveis ou quartos eu quiser?",
+            answer: "Sim! Durante nossa fase beta, oferecemos cadastro ilimitado. Você pode organizar todo o seu portfólio de imóveis e quartos sem nenhuma restrição ou custo adicional."
         },
         {
-            question: "O Aluga Fácil cobra alguma taxa sobre o aluguel?",
-            answer: "Não cobramos nenhuma porcentagem sobre o valor do seu aluguel. A plataforma funciona através de uma assinatura simples (atualmente gratuita no beta), sem comissões sobre suas locações."
+            question: "O Aluga Fácil cobra comissão sobre o aluguel?",
+            answer: "Absolutamente não. Acreditamos no aluguel direto. Não cobramos nenhuma taxa ou porcentagem sobre suas locações. A plataforma funciona através de uma assinatura simples, garantindo que 100% do valor do aluguel fique com você."
         },
         {
             question: "Preciso baixar algum aplicativo?",
@@ -54,7 +54,7 @@ export default function FAQPage() {
                             </div>
                             <h1 className="font-display text-4xl font-bold tracking-tight mb-4">Perguntas Frequentes</h1>
                             <p className="text-xl text-muted-foreground">
-                                Tire suas dúvidas sobre como usar o Aluga Fácil para gerenciar seus imóveis.
+                                Encontre respostas rápidas e descubra como o Aluga Fácil pode simplificar a gestão do seu patrimônio.
                             </p>
                         </div>
 

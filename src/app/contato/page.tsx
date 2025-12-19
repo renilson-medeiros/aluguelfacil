@@ -24,9 +24,9 @@ export default function ContactPage() {
                         {/* Info Section */}
                         <div className="flex-1 space-y-8">
                             <div>
-                                <h1 className="font-display text-4xl font-bold tracking-tight mb-4">Contato</h1>
+                                <h1 className="font-display text-4xl font-bold tracking-tight mb-4">Central de Contato</h1>
                                 <p className="text-xl text-muted-foreground">
-                                    Tem alguma dúvida, sugestão ou feedback? Adoraríamos ouvir você.
+                                    Nossa equipe está à disposição para ajudar você a ter a melhor experiência de gestão. Seja para dúvidas, sugestões ou feedbacks.
                                 </p>
                             </div>
 
@@ -58,7 +58,7 @@ export default function ContactPage() {
                                     </div>
                                     <div>
                                         <h3 className="font-bold">Tempo de Resposta</h3>
-                                        <p className="text-muted-foreground">Geralmente respondemos em até 24 horas úteis.</p>
+                                        <p className="text-muted-foreground">Priorizamos sua agilidade. Geralmente respondemos em até 24 horas úteis.</p>
                                     </div>
                                 </div>
                             </div>

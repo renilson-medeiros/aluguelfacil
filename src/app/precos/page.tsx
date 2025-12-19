@@ -12,10 +12,10 @@ export default function PricingPage() {
                 <section className="container px-4 py-16 md:py-24">
                     <div className="text-center max-w-3xl mx-auto mb-16">
                         <h1 className="font-display text-4xl md:text-5xl font-bold tracking-tight mb-6">
-                            Planos e Preços
+                            Invista na sua Gestão
                         </h1>
                         <p className="text-xl text-muted-foreground">
-                            Escolha o plano ideal para a sua necessidade. Estamos em fase beta e oferecemos condições especiais.
+                            Escolha o plano que melhor se adapta ao seu portfólio. Durante nossa fase beta, oferecemos acesso total para você transformar sua rotina.
                         </p>
                     </div>
 
@@ -23,8 +23,8 @@ export default function PricingPage() {
                         {/* Free Plan */}
                         <div className="flex flex-col p-8 bg-background border border-border rounded-2xl shadow-sm relative overflow-hidden">
                             <div className="mb-8">
-                                <h3 className="font-display text-2xl font-bold">Plano Inicial</h3>
-                                <p className="text-muted-foreground mt-2">Para quem tem poucos imóveis.</p>
+                                <h3 className="font-display text-2xl font-bold">Essencial</h3>
+                                <p className="text-muted-foreground mt-2">Ideal para quem está começando a organizar seus imóveis.</p>
                                 <div className="mt-6 flex items-baseline">
                                     <span className="text-4xl font-bold">Grátis</span>
                                 </div>
@@ -33,7 +33,7 @@ export default function PricingPage() {
                             <ul className="space-y-4 mb-8 flex-1">
                                 {[
                                     "Até 3 imóveis cadastrados",
-                                    "Gestão de inquilinos ativa",
+                                    "Gestão ativa de inquilinos",
                                     "Página pública de divulgação",
                                     "Geração de comprovantes (PDF)",
                                     "Suporte via e-mail"
@@ -57,8 +57,8 @@ export default function PricingPage() {
                             </div>
 
                             <div className="mb-8">
-                                <h3 className="font-display text-2xl font-bold">Plano Pro</h3>
-                                <p className="text-blue-100 mt-2">Gestão completa e profissional.</p>
+                                <h3 className="font-display text-2xl font-bold">Profissional</h3>
+                                <p className="text-blue-100 mt-2">A solução completa para quem busca escala e controle total.</p>
                                 <div className="mt-6 flex items-baseline">
                                     <span className="text-4xl font-bold">R$ 29,90</span>
                                     <span className="ml-2 text-blue-200">/mês</span>
@@ -67,7 +67,7 @@ export default function PricingPage() {
 
                             <ul className="space-y-4 mb-8 flex-1">
                                 {[
-                                    "Imóveis ilimitados",
+                                    "Imóveis e quartos ilimitados",
                                     "Gestão completa de histórico",
                                     "Fotos ilimitadas por imóvel",
                                     "Comprovantes com sua logo",
@@ -91,10 +91,9 @@ export default function PricingPage() {
                     <div className="mt-16 max-w-2xl mx-auto bg-accent/50 p-6 rounded-2xl flex gap-4 items-start border border-border/50">
                         <Info className="h-6 w-6 text-blue-500 shrink-0 mt-0.5" />
                         <div>
-                            <h4 className="font-bold mb-1">Estamos em Fase Beta!</h4>
+                            <h4 className="font-bold mb-1">Aproveite nossa Fase Beta!</h4>
                             <p className="text-sm text-muted-foreground leading-relaxed">
-                                Durante este período, todas as funcionalidades do Plano Pro estão liberadas gratuitamente para novos usuários.
-                                Aproveite para organizar sua gestão sem custos extras.
+                                Estamos construindo o futuro da gestão de aluguéis junto com você. Por tempo limitado, todas as ferramentas do plano Profissional estão disponíveis de forma totalmente gratuita para novos usuários.
                             </p>
                         </div>
                     </div>

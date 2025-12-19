@@ -20,10 +20,10 @@ export default function HowItWorksPage() {
                 {/* Hero Section */}
                 <section className="container px-4 py-16 md:py-24 text-center">
                     <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
-                        Como o <span className="text-blue-500">Aluga Fácil</span> funciona?
+                        Sua gestão de aluguéis, <span className="text-blue-500">simples e direta</span>
                     </h1>
                     <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
-                        Simplificamos todo o processo de aluguel direto, do cadastro do imóvel à gestão mensal de inquilinos.
+                        O Aluga Fácil oferece autonomia total para proprietários, eliminando intermediários e automatizando a gestão do dia a dia.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
                         <Link href="/registro">
@@ -39,8 +39,8 @@ export default function HowItWorksPage() {
                 <section className="bg-secondary/30 py-16 md:py-24">
                     <div className="container px-4">
                         <div className="text-center mb-16">
-                            <h2 className="font-display text-3xl font-bold mb-4">Para Proprietários</h2>
-                            <p className="text-muted-foreground">Tudo o que você precisa para gerenciar seus imóveis com autonomia.</p>
+                            <h2 className="font-display text-3xl font-bold mb-4">A Ferramenta do Proprietário</h2>
+                            <p className="text-muted-foreground">Tudo o que você precisa para gerenciar suas locações com autonomia e profissionalismo.</p>
                         </div>
 
                         <div className="grid gap-8 md:grid-cols-3">
@@ -48,9 +48,9 @@ export default function HowItWorksPage() {
                                 <div className="h-12 w-12 bg-accent rounded-xl flex items-center justify-center mb-6">
                                     <Building2 className="h-6 w-6 text-blue-500" />
                                 </div>
-                                <h3 className="text-xl font-bold mb-4">1. Cadastre seus imóveis</h3>
+                                <h3 className="text-xl font-bold mb-4">1. Organize seu Portfólio</h3>
                                 <p className="text-muted-foreground">
-                                    Adicione fotos, detalhes, regras e valores. É rápido e você tem controle total sobre as informações exibidas.
+                                    Cadastre seus imóveis com fotos, regras e valores detalhados. Mantenha todas as informações centralizadas e organizadas em um só lugar.
                                 </p>
                             </div>
 
@@ -58,9 +58,9 @@ export default function HowItWorksPage() {
                                 <div className="h-12 w-12 bg-accent rounded-xl flex items-center justify-center mb-6">
                                     <Share2 className="h-6 w-6 text-blue-500" />
                                 </div>
-                                <h3 className="text-xl font-bold mb-4">2. Divulgue com um link</h3>
+                                <h3 className="text-xl font-bold mb-4">2. Divulgação com Autonomia</h3>
                                 <p className="text-muted-foreground">
-                                    Gere um link personalizado para cada imóvel e compartilhe em redes sociais ou WhatsApp. Quem acessar vê todos os dados e entra em contato direto com você.
+                                    Gere links exclusivos para compartilhar em redes sociais e WhatsApp. Receba o contato de interessados diretamente no seu celular, sem taxas de intermediação.
                                 </p>
                             </div>
 
@@ -68,9 +68,9 @@ export default function HowItWorksPage() {
                                 <div className="h-12 w-12 bg-accent rounded-xl flex items-center justify-center mb-6">
                                     <Users className="h-6 w-6 text-blue-500" />
                                 </div>
-                                <h3 className="text-xl font-bold mb-4">3. Gerencie Inquilinos</h3>
+                                <h3 className="text-xl font-bold mb-4">3. Gestão de Locações</h3>
                                 <p className="text-muted-foreground">
-                                    Vincule inquilinos aos imóveis, controle datas de vencimento e gere comprovantes de pagamento profissionais em segundos.
+                                    Vincule inquilinos, monitore vencimentos e emita comprovantes profissionais instantaneamente. Transforme sua gestão em um processo ágil e seguro.
                                 </p>
                             </div>
                         </div>
@@ -82,9 +82,9 @@ export default function HowItWorksPage() {
                     <div className="container px-4">
                         <div className="flex flex-col md:flex-row gap-12 items-center">
                             <div className="flex-1 space-y-6">
-                                <h2 className="font-display text-3xl font-bold">Experiência do Inquilino</h2>
+                                <h2 className="font-display text-3xl font-bold">Experiência de Locação Premium</h2>
                                 <p className="text-lg text-muted-foreground">
-                                    Oferecemos uma visualização premium para que o futuro inquilino tenha todas as informações necessárias antes mesmo do primeiro contato.
+                                    Garantimos que o interessado receba uma apresentação impecável do seu imóvel, com transparência e facilidade de contato imediato.
                                 </p>
                                 <ul className="space-y-4">
                                     {[
