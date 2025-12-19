@@ -11,7 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
-  const { user, loading } = useAuth();
+  const { user, loading, signOut } = useAuth();
   const isAuthPage = pathname === "/login" || pathname === "/registro";
   const isPropertyPublicPage = pathname.startsWith("/imovel/");
   const showNav = user || (!isPropertyPublicPage && !isAuthPage);
@@ -35,12 +35,21 @@ export function Header() {
           {showNav && !isAuthPage && (
             <>
               {user ? (
-                <Link href="/dashboard">
-                  <Button className="font-medium bg-blue-500 hover:bg-blue-400 gap-2">
-                    <LayoutDashboard className="h-4 w-4" />
-                    Dashboard
+                <div className="flex items-center gap-3">
+                  <Link href="/dashboard">
+                    <Button className="font-medium bg-blue-500 hover:bg-blue-400 gap-2">
+                      <LayoutDashboard className="h-4 w-4" />
+                      Dashboard
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="ghost"
+                    className="font-medium text-red-500 hover:text-red-600 hover:bg-red-50"
+                    onClick={() => signOut()}
+                  >
+                    Sair
                   </Button>
-                </Link>
+                </div>
               ) : (
                 <>
                   <Link href="/login">
@@ -76,12 +85,24 @@ export function Header() {
                   {!isAuthPage && (
                     <>
                       {user ? (
-                        <Link href="/dashboard" onClick={() => setIsOpen(false)}>
-                          <Button className="w-full font-medium bg-blue-500 hover:bg-blue-400 gap-2">
-                            <LayoutDashboard className="h-4 w-4" />
-                            Dashboard
+                        <div className="flex flex-col gap-3">
+                          <Link href="/dashboard" onClick={() => setIsOpen(false)}>
+                            <Button className="w-full font-medium bg-blue-500 hover:bg-blue-400 gap-2">
+                              <LayoutDashboard className="h-4 w-4" />
+                              Dashboard
+                            </Button>
+                          </Link>
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-start font-medium text-red-500 hover:text-red-600 hover:bg-red-50"
+                            onClick={() => {
+                              signOut();
+                              setIsOpen(false);
+                            }}
+                          >
+                            Sair
                           </Button>
-                        </Link>
+                        </div>
                       ) : (
                         <>
                           <Link href="/login" onClick={() => setIsOpen(false)}>

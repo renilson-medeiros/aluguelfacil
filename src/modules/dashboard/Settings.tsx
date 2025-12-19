@@ -158,7 +158,7 @@ export default function Settings() {
                         <Info className="h-3.5 w-3.5 text-blue-500" />
                       </button>
                     </PopoverTrigger>
-                    <PopoverContent side="right" className="w-80 p-3 text-xs leading-relaxed">
+                    <PopoverContent side="top" className="w-60 mb-2 bg-popover shadow-md rounded-lg p-3 text-xs leading-relaxed">
                       <p>
                         Use seu número de contato principal para 
                         que os interessados possam falar com você diretamente.
