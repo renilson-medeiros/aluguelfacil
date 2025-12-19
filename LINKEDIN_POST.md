@@ -1,6 +1,6 @@
-# 🏠 AluguelFácil - Sistema Profissional de Gestão de Imóveis
+# 🏠 Alugue Fácil - Sistema Profissional de Gestão de Imóveis
 
-Acabei de lançar meu mais novo projeto: **AluguelFácil** - um sistema completo de gestão de imóveis para aluguel! 🚀
+Acabei de lançar meu mais novo projeto: **Alugue Fácil** - um sistema completo de gestão de imóveis para aluguel! 🚀
 
 ## 🎯 O Projeto
 
@@ -67,7 +67,7 @@ Uma aplicação full-stack que resolve problemas reais de proprietários, oferec
 
 ## 🔗 Links
 
-- **Repositório**: [github.com/seu-usuario/aluguelfacil](https://github.com/seu-usuario/aluguelfacil)
+- **Repositório**: [github.com/seu-usuario/aluguefacil](https://github.com/seu-usuario/aluguefacil)
 - **Demo**: [em breve]
 
 ---
