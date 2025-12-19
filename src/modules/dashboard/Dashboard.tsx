@@ -2,10 +2,11 @@ import Link from "next/link";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Building2, Users, Receipt, Plus, ArrowRight, TrendingUp, Home, ChevronLeft, ChevronRight as ChevronRightIcon } from "lucide-react";
+import { Building2, Users, Receipt, Plus, ArrowRight, TrendingUp, Home, ChevronLeft, ChevronRight as ChevronRightIcon, AlertCircle, Clock, Calendar } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
+import { cn } from "@/lib/utils";
 import {
   BarChart,
   Bar,
@@ -37,6 +38,16 @@ interface RevenueData {
   total: number;
 }
 
+interface DashboardAlert {
+  id: string;
+  tenantId: string;
+  tenantName: string;
+  propertyName: string;
+  dueDate: number;
+  type: 'overdue' | 'upcoming';
+  amount: number;
+}
+
 export default function Dashboard() {
   // 🔥 CHAMAR useAuth NO TOPO (antes de qualquer outro código)
   const { profile, loading: authLoading } = useAuth();
@@ -48,8 +59,10 @@ export default function Dashboard() {
   });
   const [recentProperties, setRecentProperties] = useState<RecentProperty[]>([]);
   const [revenueData, setRevenueData] = useState<RevenueData[]>([]);
+  const [alerts, setAlerts] = useState<DashboardAlert[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingProperties, setLoadingProperties] = useState(false);
+  const [loadingAlerts, setLoadingAlerts] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalProperties, setTotalProperties] = useState(0);
 
@@ -60,6 +73,7 @@ export default function Dashboard() {
     loadDashboardStats();
     loadRevenueData();
     loadProperties(1);
+    loadAlerts();
   }, []);
 
   const loadDashboardStats = async () => {
@@ -113,7 +127,7 @@ export default function Dashboard() {
         months[key] = 0;
       }
 
-      data?.forEach(item => {
+      data?.forEach((item: any) => {
         const date = new Date(item.mes_referencia);
         const key = `${monthNames[date.getMonth()]}/${date.getFullYear().toString().slice(-2)}`;
         if (months[key] !== undefined) {
@@ -129,6 +143,93 @@ export default function Dashboard() {
       setRevenueData(chartData);
     } catch (error) {
       console.error('Erro ao carregar dados de receita:', error);
+    }
+  };
+
+  const loadAlerts = async () => {
+    try {
+      setLoadingAlerts(true);
+
+      const now = new Date();
+      const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+
+      // 1. Buscar todos os inquilinos ativos
+      const { data: activeTenants, error: tenantsError } = await supabase
+        .from('inquilinos')
+        .select(`
+          id,
+          nome_completo,
+          dia_vencimento,
+          valor_aluguel,
+          imoveis (
+            endereco_rua,
+            endereco_numero
+          )
+        `)
+        .eq('status', 'ativo');
+
+      if (tenantsError) throw tenantsError;
+
+      // 2. Buscar comprovantes de pagamento do mês atual
+      const { data: currentMonthReceipts, error: receiptsError } = await supabase
+        .from('comprovantes')
+        .select('inquilino_id')
+        .eq('tipo', 'pagamento')
+        .gte('mes_referencia', currentMonthStart);
+
+      if (receiptsError) throw receiptsError;
+
+      const receivedInquilinoIds = new Set(currentMonthReceipts?.map((r: any) => r.inquilino_id));
+
+      const dashboardAlerts: DashboardAlert[] = [];
+      const today = now.getDate();
+
+      activeTenants?.forEach((tenant: any) => {
+        // Se já pagou este mês, ignora
+        if (receivedInquilinoIds.has(tenant.id)) return;
+
+        const dueDay = tenant.dia_vencimento;
+        const property = Array.isArray(tenant.imoveis) ? tenant.imoveis[0] : tenant.imoveis;
+        const propertyName = property ? `${property.endereco_rua}, ${property.endereco_numero}` : 'Imóvel';
+
+        if (dueDay < today) {
+          // Atrasado
+          dashboardAlerts.push({
+            id: `overdue-${tenant.id}`,
+            tenantId: tenant.id,
+            tenantName: tenant.nome_completo,
+            propertyName,
+            dueDate: dueDay,
+            type: 'overdue',
+            amount: tenant.valor_aluguel
+          });
+        } else if (dueDay <= today + 5) {
+          // Vencendo logo
+          dashboardAlerts.push({
+            id: `upcoming-${tenant.id}`,
+            tenantId: tenant.id,
+            tenantName: tenant.nome_completo,
+            propertyName,
+            dueDate: dueDay,
+            type: 'upcoming',
+            amount: tenant.valor_aluguel
+          });
+        }
+      });
+
+      // Ordenar por tipo (overdue primeiro) e depois por dia
+      dashboardAlerts.sort((a, b) => {
+        if (a.type !== b.type) {
+          return a.type === 'overdue' ? -1 : 1;
+        }
+        return a.dueDate - b.dueDate;
+      });
+
+      setAlerts(dashboardAlerts);
+    } catch (error) {
+      console.error('Erro ao carregar alertas:', error);
+    } finally {
+      setLoadingAlerts(false);
     }
   };
 
@@ -151,7 +252,7 @@ export default function Dashboard() {
         .order('created_at', { ascending: false })
         .range(from, to);
 
-      const formattedProperties = imoveisRecentes?.map(imovel => ({
+      const formattedProperties = imoveisRecentes?.map((imovel: any) => ({
         id: imovel.id,
         endereco_rua: imovel.endereco_rua,
         endereco_numero: imovel.endereco_numero,
@@ -375,6 +476,74 @@ export default function Dashboard() {
                     style={{ width: `${stats.totalImoveis > 0 ? (stats.inquilinosAtivos / stats.totalImoveis) * 100 : 0}%` }}
                   />
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Alerts Section */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4" />
+                  Avisos e Pendências
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loadingAlerts ? (
+                  <div className="space-y-3">
+                    {[1, 2].map(i => (
+                      <div key={i} className="h-16 w-full animate-pulse bg-accent rounded-lg" />
+                    ))}
+                  </div>
+                ) : alerts.length > 0 ? (
+                  <div className="space-y-3">
+                    {alerts.map((alert) => (
+                      <Link key={alert.id} href={`/dashboard/inquilinos`}>
+                        <div
+                          className={cn(
+                            "flex items-start gap-3 p-3 rounded-lg border transition-colors",
+                            alert.type === 'overdue'
+                              ? "bg-red-50 border-red-100 hover:bg-red-100/50"
+                              : "bg-amber-50 border-amber-100 hover:bg-amber-100/50"
+                          )}
+                        >
+                          <div className={cn(
+                            "mt-0.5 h-8 w-8 rounded-full flex items-center justify-center shrink-0",
+                            alert.type === 'overdue' ? "bg-red-100 text-red-600" : "bg-amber-100 text-amber-600"
+                          )}>
+                            {alert.type === 'overdue' ? <AlertCircle className="h-4 w-4" /> : <Clock className="h-4 w-4" />}
+                          </div>
+                          <div className="min-w-0">
+                            <p className={cn(
+                              "text-sm font-semibold truncate",
+                              alert.type === 'overdue' ? "text-red-900" : "text-amber-900"
+                            )}>
+                              {alert.type === 'overdue' ? 'Aluguel Atrasado' : 'Vencendo em breve'}
+                            </p>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {alert.tenantName} • {alert.propertyName}
+                            </p>
+                            <p className={cn(
+                              "text-[10px] font-medium mt-1 uppercase",
+                              alert.type === 'overdue' ? "text-red-700" : "text-amber-700"
+                            )}>
+                              Vence dia {alert.dueDate} • {alert.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                            </p>
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-6 text-center">
+                    <div className="h-10 w-10 rounded-full bg-green-50 flex items-center justify-center mb-2">
+                      <TrendingUp className="h-5 w-5 text-green-600" />
+                    </div>
+                    <p className="text-sm font-medium text-green-700">Tudo em dia!</p>
+                    <p className="text-xs text-muted-foreground px-4 mt-1">
+                      Nenhuma pendência ou vencimento próximo no momento.
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

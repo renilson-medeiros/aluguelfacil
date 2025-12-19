@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, useParams } from "next/navigation";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,8 @@ import {
   User,
   Building2,
   DollarSign,
-  Loader2
+  Loader2,
+  Search
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
@@ -99,6 +100,9 @@ export default function ReceiptForm() {
   const [isLoading, setIsLoading] = useState(true);
   const [showPreview, setShowPreview] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const params = useParams();
+  const id = params?.id as string;
+  const isEditing = !!id && id !== 'novo';
 
   const loadTenants = useCallback(async () => {
     if (!user) return;
@@ -131,7 +135,9 @@ export default function ReceiptForm() {
 
       const formattedData = (data || []).map(item => ({
         ...item,
-        imoveis: Array.isArray(item.imoveis) ? item.imoveis[0] : item.imoveis
+        imoveis: Array.isArray(item.imoveis)
+          ? (item.imoveis.length > 0 ? item.imoveis[0] : null)
+          : (item.imoveis || null)
       })) as unknown as Tenant[];
 
       setTenants(formattedData);
@@ -155,6 +161,73 @@ export default function ReceiptForm() {
   useEffect(() => {
     loadTenants();
   }, [loadTenants]);
+
+  const loadReceipt = useCallback(async () => {
+    if (!id || id === 'novo') return;
+
+    try {
+      setIsLoading(true);
+      const { data: receipt, error } = await supabase
+        .from('comprovantes')
+        .select(`
+          *,
+          inquilinos (
+            nome_completo,
+            cpf
+          ),
+          imoveis (
+            id,
+            titulo,
+            endereco_rua,
+            endereco_numero,
+            endereco_bairro,
+            endereco_cidade,
+            valor_condominio,
+            valor_iptu
+          )
+        `)
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      if (!receipt) return;
+
+      const tenant = Array.isArray(receipt.inquilinos) ? receipt.inquilinos[0] : receipt.inquilinos;
+      const property = Array.isArray(receipt.imoveis) ? receipt.imoveis[0] : receipt.imoveis;
+
+      const [year, month] = receipt.mes_referencia.split('-');
+
+      setFormData({
+        tenantId: receipt.inquilino_id,
+        tenantName: tenant?.nome_completo || '',
+        tenantCpf: tenant?.cpf || '',
+        propertyId: receipt.imovel_id,
+        propertyName: property?.titulo || `${property?.endereco_rua}, ${property?.endereco_numero}`,
+        propertyAddress: `${property?.endereco_rua}, ${property?.endereco_numero} - ${property?.endereco_bairro}, ${property?.endereco_cidade}`,
+        rentValue: formatCurrency(((receipt.valor || 0) * 100).toString()),
+        condoValue: formatCurrency(((property?.valor_condominio || 0) * 100).toString()),
+        iptuValue: formatCurrency(((property?.valor_iptu || 0) * 100).toString()),
+        otherValue: "R$ 0,00",
+        paymentDate: receipt.created_at ? new Date(receipt.created_at) : new Date(),
+        referenceMonth: parseInt(month).toString(),
+        referenceYear: year,
+        observations: receipt.descricao || "",
+      });
+
+      setShowPreview(true);
+    } catch (error) {
+      console.error('Erro ao carregar comprovante:', error);
+      toast.error('Erro ao carregar comprovante');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    if (isEditing) {
+      loadReceipt();
+    }
+  }, [isEditing, loadReceipt]);
 
   const applyTenantData = (tenant: Tenant) => {
     setFormData(prev => ({
@@ -284,8 +357,12 @@ export default function ReceiptForm() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="font-display text-2xl font-bold sm:text-3xl">Gerar Comprovante</h1>
-            <p className="text-muted-foreground">Crie um comprovante de pagamento</p>
+            <h1 className="font-display text-2xl font-bold sm:text-3xl">
+              {isEditing ? 'Visualizar Comprovante' : 'Gerar Comprovante'}
+            </h1>
+            <p className="text-muted-foreground">
+              {isEditing ? 'Detalhes do comprovante emitido' : 'Crie um comprovante de pagamento'}
+            </p>
           </div>
         </div>
 
@@ -470,8 +547,8 @@ export default function ReceiptForm() {
                     Cancelar
                   </Button>
                 </Link>
-                <Button type="submit" disabled={isSubmitting || !formData.tenantId} className="w-full sm:w-auto bg-blue-500 hover:bg-blue-400">
-                  {isSubmitting ? "Salvando..." : "Gerar comprovante"}
+                <Button type="submit" disabled={isSubmitting || !formData.tenantId || isEditing} className="w-full sm:w-auto bg-blue-500 hover:bg-blue-400">
+                  {isSubmitting ? "Salvando..." : isEditing ? "Comprovante Salvo" : "Gerar comprovante"}
                 </Button>
               </div>
             </div>

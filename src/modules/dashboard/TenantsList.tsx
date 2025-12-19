@@ -95,7 +95,9 @@ export default function TenantsList() {
       // Transformar dados para corresponder à interface
       const transformedData: Tenant[] = (data || []).map(item => ({
         ...item,
-        imoveis: Array.isArray(item.imoveis) ? item.imoveis[0] : item.imoveis
+        imoveis: Array.isArray(item.imoveis)
+          ? (item.imoveis.length > 0 ? item.imoveis[0] : null)
+          : (item.imoveis || null)
       })) as unknown as Tenant[];
 
       setTenants(transformedData);

@@ -87,8 +87,12 @@ export default function ReceiptsList() {
       // Transformar dados para corresponder à interface
       const transformedData: ReceiptData[] = (data || []).map(item => ({
         ...item,
-        inquilinos: Array.isArray(item.inquilinos) && item.inquilinos.length > 0 ? item.inquilinos[0] : null,
-        imoveis: Array.isArray(item.imoveis) && item.imoveis.length > 0 ? item.imoveis[0] : null
+        inquilinos: Array.isArray(item.inquilinos)
+          ? (item.inquilinos.length > 0 ? item.inquilinos[0] : null)
+          : (item.inquilinos || null),
+        imoveis: Array.isArray(item.imoveis)
+          ? (item.imoveis.length > 0 ? item.imoveis[0] : null)
+          : (item.imoveis || null)
       }));
 
       setReceipts(transformedData);
@@ -213,7 +217,7 @@ export default function ReceiptsList() {
                           <h3 className="font-display font-semibold capitalize">
                             {formatReferenceMonth(receipt.mes_referencia)}
                           </h3>
-                          <Badge variant="outline" className="bg-success/10 text-success border-success/20">
+                          <Badge variant="outline" className="bg-success/10 text-success font-normal border-success/20">
                             {receipt.tipo === 'pagamento' ? 'Pagamento' : 'Residência'}
                           </Badge>
                         </div>
