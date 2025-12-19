@@ -223,9 +223,9 @@ export default function PropertyDetail() {
     <div className="flex min-h-screen flex-col">
       <Header />
 
-      <main className="flex-1">
+      <main className="flex-1 -px-4">
         {/* Back button */}
-        <div className="container py-4">
+        <div className="container px-4 py-4">
           <button
             onClick={() => router.back()}
             className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground cursor-pointer"
@@ -236,7 +236,7 @@ export default function PropertyDetail() {
         </div>
 
         {/* Image Gallery */}
-        <section className="container pb-8" aria-label="Galeria de fotos">
+        <section className="container px-4 pb-8" aria-label="Galeria de fotos">
           <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
             {property.images.map((image, index) => (
               <div
@@ -255,7 +255,7 @@ export default function PropertyDetail() {
         </section>
 
         {/* Content */}
-        <section className="container pb-16">
+        <section className="container px-4 pb-16">
           <div className="grid gap-8 lg:grid-cols-3">
             {/* Main Content */}
             <div className="lg:col-span-2">
