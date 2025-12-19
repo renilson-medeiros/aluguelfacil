@@ -27,7 +27,11 @@ import {
   Loader2,
   ChevronLeft,
   Info,
-  ChevronRight
+  ChevronRight,
+  UserPlus,
+  UserMinus,
+  Settings,
+  AlertTriangle
 } from "lucide-react";
 import {
   Carousel,
@@ -37,6 +41,16 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -46,6 +60,7 @@ import { useAuth } from "@/contexts/AuthContext";
 interface Property {
   id: string;
   title: string;
+  status: 'disponivel' | 'alugado' | 'manutencao';
   images: string[];
   address: {
     street: string;
@@ -81,9 +96,19 @@ interface Property {
   };
   observations: string | null;
   owner: {
+    id: string;
     name: string;
     whatsapp: string;
   };
+}
+
+interface HistoricalTenant {
+  id: string;
+  nome_completo: string;
+  data_inicio: string;
+  data_fim: string | null;
+  status: 'ativo' | 'inativo';
+  valor_aluguel: number;
 }
 
 export default function PropertyDetail() {
@@ -97,6 +122,11 @@ export default function PropertyDetail() {
   const [mainApi, setMainApi] = useState<CarouselApi>();
   const [thumbApi, setThumbApi] = useState<CarouselApi>();
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [tenants, setTenants] = useState<HistoricalTenant[]>([]);
+  const [loadingTenants, setLoadingTenants] = useState(false);
+  const [isTerminating, setIsTerminating] = useState(false);
+  const [showTerminateDialog, setShowTerminateDialog] = useState(false);
+  const [isChanging, setIsChanging] = useState(false);
 
   // Sync carousels and update selected index
   useEffect(() => {
@@ -165,6 +195,7 @@ export default function PropertyDetail() {
       const formattedProperty: Property = {
         id: imovel.id,
         title: imovel.titulo || `${imovel.endereco_rua}, ${imovel.endereco_numero}`,
+        status: imovel.status || 'disponivel',
         images: imovel.fotos && imovel.fotos.length > 0
           ? imovel.fotos
           : ["/preview.png"],
@@ -202,18 +233,42 @@ export default function PropertyDetail() {
         },
         observations: imovel.descricao,
         owner: {
+          id: imovel.proprietario_id,
           name: imovel.profiles?.nome_completo || 'Proprietário',
           whatsapp: imovel.profiles?.telefone?.replace(/\D/g, '') || '',
         },
       };
 
       setProperty(formattedProperty);
+
+      // Carregar histórico de inquilinos se for o dono
+      if (user?.id === imovel.proprietario_id) {
+        loadTenants(propertyId);
+      }
     } catch (error) {
       console.error('Erro ao carregar imóvel:', error);
       toast.error('Erro ao carregar imóvel');
       setNotFound(true);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadTenants = async (propertyId: string) => {
+    try {
+      setLoadingTenants(true);
+      const { data, error } = await supabase
+        .from('inquilinos')
+        .select('id, nome_completo, data_inicio, data_fim, status, valor_aluguel')
+        .eq('imovel_id', propertyId)
+        .order('data_inicio', { ascending: false });
+
+      if (error) throw error;
+      setTenants(data || []);
+    } catch (error) {
+      console.error('Erro ao carregar inquilinos:', error);
+    } finally {
+      setLoadingTenants(false);
     }
   };
 
@@ -225,6 +280,59 @@ export default function PropertyDetail() {
       `Olá! Vi o imóvel\n\n*${property.title}*\n${propertyLink}\n\nE gostaria de mais informações.`
     );
     window.open(`https://wa.me/55${property.owner.whatsapp}?text=${message}`, "_blank");
+  };
+
+  const handleTerminateLease = async (isChangeFlow = false) => {
+    try {
+      if (!id) return;
+      setIsTerminating(true);
+
+      // 1. Encontrar o inquilino ativo para este imóvel
+      const { data: inquilino } = await supabase
+        .from('inquilinos')
+        .select('id')
+        .eq('imovel_id', id)
+        .eq('status', 'ativo')
+        .single();
+
+      if (inquilino) {
+        // 2. Inativar o inquilino
+        await supabase
+          .from('inquilinos')
+          .update({
+            status: 'inativo',
+            data_fim: new Date().toISOString().split('T')[0]
+          })
+          .eq('id', inquilino.id);
+      }
+
+      // 3. Voltar o imóvel para disponível
+      const { error: propertyError } = await supabase
+        .from('imoveis')
+        .update({ status: 'disponivel' })
+        .eq('id', id);
+
+      if (propertyError) throw propertyError;
+
+      toast.success('Locação finalizada!');
+
+      if (!isChangeFlow) {
+        loadProperty(id as string);
+      }
+    } catch (error) {
+      console.error('Erro ao finalizar locação:', error);
+      toast.error('Erro ao finalizar locação');
+    } finally {
+      setIsTerminating(false);
+      setShowTerminateDialog(false);
+    }
+  };
+
+  const handleChangeTenant = async () => {
+    if (!id) return;
+    setIsChanging(true);
+    await handleTerminateLease(true);
+    router.push(`/dashboard/imoveis/${id}/inquilino`);
   };
 
   // Loading state
@@ -534,6 +642,76 @@ export default function PropertyDetail() {
                     </div>
                   </>
                 )}
+
+                {/* Histórico de Locações (Apenas para o Proprietário) */}
+                {user?.id === property.owner.id && (
+                  <>
+                    <Separator className="my-8" />
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <h2 className="font-display text-xl font-semibold">Histórico de Locações</h2>
+                        <Badge variant="outline" className="font-normal text-muted-foreground">
+                          {tenants.length} registro{tenants.length !== 1 ? 's' : ''}
+                        </Badge>
+                      </div>
+
+                      <div className="mt-6 space-y-4">
+                        {loadingTenants ? (
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Carregando histórico...
+                          </div>
+                        ) : tenants.length > 0 ? (
+                          <div className="rounded-xl border border-border overflow-hidden">
+                            <div className="overflow-x-auto">
+                              <table className="w-full text-sm text-left">
+                                <thead className="bg-muted/50 text-muted-foreground border-b border-border">
+                                  <tr>
+                                    <th className="px-4 py-3 font-medium">Inquilino</th>
+                                    <th className="px-4 py-3 font-medium">Período</th>
+                                    <th className="px-4 py-3 font-medium">Valor</th>
+                                    <th className="px-4 py-3 font-medium">Status</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-border">
+                                  {tenants.map((tenant) => (
+                                    <tr key={tenant.id} className="hover:bg-muted/30 transition-colors">
+                                      <td className="px-4 py-4 font-medium">{tenant.nome_completo}</td>
+                                      <td className="px-4 py-4 text-muted-foreground">
+                                        {new Date(tenant.data_inicio).toLocaleDateString('pt-BR')} - {tenant.data_fim ? new Date(tenant.data_fim).toLocaleDateString('pt-BR') : 'Atual'}
+                                      </td>
+                                      <td className="px-4 py-4">
+                                        {tenant.valor_aluguel.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                                      </td>
+                                      <td className="px-4 py-4">
+                                        <Badge
+                                          variant="outline"
+                                          className={cn(
+                                            "text-[10px] font-medium uppercase tracking-wider",
+                                            tenant.status === 'ativo'
+                                              ? "bg-green-50 text-green-700 border-green-200"
+                                              : "bg-gray-50 text-gray-600 border-gray-200"
+                                          )}
+                                        >
+                                          {tenant.status === 'ativo' ? 'Ativo' : 'Encerrado'}
+                                        </Badge>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border py-8 text-center">
+                            <Users className="h-8 w-8 text-muted-foreground/50 mb-2" />
+                            <p className="text-sm text-muted-foreground">Nenhum histórico de locação encontrado.</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 
@@ -581,7 +759,53 @@ export default function PropertyDetail() {
                       </span>
                     </div>
 
-                    {property.owner.whatsapp && (
+                    {user?.id === property.owner.id ? (
+                      <div className="pt-4 space-y-3">
+                        <Separator />
+                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Gestão do Imóvel</h4>
+
+                        {property.status === 'alugado' ? (
+                          <>
+                            <Button
+                              className="w-full gap-2 bg-orange-500 hover:bg-orange-600"
+                              onClick={() => {
+                                if (confirm("Isso irá encerrar a locação atual para iniciar uma nova. Continuar?")) {
+                                  handleChangeTenant();
+                                }
+                              }}
+                              disabled={isChanging || isTerminating}
+                            >
+                              <UserPlus className="h-4 w-4" />
+                              {isChanging ? "Processando..." : "Trocar Inquilino"}
+                            </Button>
+
+                            <Button
+                              variant="outline"
+                              className="w-full gap-2 text-orange-600 border-orange-200 hover:bg-orange-50"
+                              onClick={() => setShowTerminateDialog(true)}
+                              disabled={isTerminating}
+                            >
+                              <UserMinus className="h-4 w-4" />
+                              Finalizar Locação
+                            </Button>
+                          </>
+                        ) : (
+                          <Link href={`/dashboard/imoveis/${property.id}/inquilino`} className="block w-full">
+                            <Button className="w-full gap-2 bg-blue-500 hover:bg-blue-400">
+                              <UserPlus className="h-4 w-4" />
+                              Cadastrar Inquilino
+                            </Button>
+                          </Link>
+                        )}
+
+                        <Link href={`/dashboard/imoveis/${property.id}/editar`} className="block w-full">
+                          <Button variant="outline" className="w-full gap-2">
+                            <Settings className="h-4 w-4" />
+                            Editar Dados
+                          </Button>
+                        </Link>
+                      </div>
+                    ) : property.owner.whatsapp && (
                       <>
                         <Button
                           size="lg"
@@ -604,6 +828,30 @@ export default function PropertyDetail() {
           </div>
         </section>
       </main>
+
+      <AlertDialog open={showTerminateDialog} onOpenChange={setShowTerminateDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-orange-500" />
+              Finalizar Locação
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja finalizar a locação atual? O imóvel voltará para o status "Disponível" e o inquilino será marcado como inativo.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isTerminating}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => handleTerminateLease()}
+              disabled={isTerminating}
+              className="bg-orange-500 hover:bg-orange-600 text-white"
+            >
+              {isTerminating ? "Finalizando..." : "Confirmar Encerramento"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Footer />
     </div>
