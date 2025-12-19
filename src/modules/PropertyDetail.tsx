@@ -24,8 +24,19 @@ import {
   ArrowLeft,
   Home,
   Maximize,
-  Loader2
+  Loader2,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
+import {
+  Carousel,
+  CarouselApi,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -80,6 +91,39 @@ export default function PropertyDetail() {
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [mainApi, setMainApi] = useState<CarouselApi>();
+  const [thumbApi, setThumbApi] = useState<CarouselApi>();
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  // Sync carousels and update selected index
+  useEffect(() => {
+    if (!mainApi || !thumbApi) return;
+
+    const onSelect = () => {
+      const index = mainApi.selectedScrollSnap();
+      setSelectedIndex(index);
+      // Force thumb scroll to keep it in sync
+      thumbApi.scrollTo(index);
+    };
+
+    const onThumbSelect = () => {
+      const index = thumbApi.selectedScrollSnap();
+      if (mainApi.selectedScrollSnap() !== index) {
+        mainApi.scrollTo(index);
+      }
+    };
+
+    mainApi.on("select", onSelect);
+    thumbApi.on("select", onThumbSelect);
+
+    // Initial index
+    setSelectedIndex(mainApi.selectedScrollSnap());
+
+    return () => {
+      mainApi.off("select", onSelect);
+      thumbApi.off("select", onThumbSelect);
+    };
+  }, [mainApi, thumbApi]);
 
   useEffect(() => {
     if (id) {
@@ -240,22 +284,99 @@ export default function PropertyDetail() {
           </button>
         </div>
 
-        {/* Image Gallery */}
+        {/* Advanced Image Gallery */}
         <section className="container px-4 pb-8" aria-label="Galeria de fotos">
-          <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
-            {property.images.map((image, index) => (
-              <div
-                key={index}
-                className={`relative overflow-hidden rounded-xl ${index === 0 ? 'md:col-span-2 md:row-span-2' : ''}`}
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 h-[300px] md:h-[500px] lg:h-[580px]">
+            {/* Thumbnail Carousel (Left - Vertical) */}
+            <div className="hidden lg:block lg:col-span-1 h-full overflow-hidden">
+              <Carousel
+                setApi={setThumbApi}
+                orientation="vertical"
+                className="w-full h-full"
+                opts={{
+                  loop: true,
+                  align: "start",
+                  containScroll: false
+                }}
               >
-                <img
-                  src={image}
-                  alt={`Foto ${index + 1} do imóvel`}
-                  className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
-                  style={{ aspectRatio: index === 0 ? '16/10' : '16/9' }}
-                />
-              </div>
-            ))}
+                <CarouselContent className="h-full -mt-4">
+                  {property.images.map((image, index) => (
+                    <CarouselItem
+                      key={index}
+                      className="pt-4 basis-1/2 h-1/2"
+                      onClick={() => mainApi?.scrollTo(index)}
+                    >
+                      <div className={cn(
+                        "relative h-full w-full overflow-hidden rounded-xl border-2 transition-all duration-300 cursor-pointer",
+                        selectedIndex === index
+                          ? "border-blue-500 shadow-lg opacity-100"
+                          : "border-transparent opacity-40 hover:opacity-100"
+                      )}>
+                        <img
+                          src={image}
+                          alt={`Miniatura ${index + 1}`}
+                          className="w-[495px] h-[250px] object-cover"
+                        />
+                      </div>
+                    </CarouselItem>
+                  ))}
+
+                </CarouselContent>
+                <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-background/95 to-transparent"></div>
+              </Carousel>
+            </div>
+
+            {/* Main Carousel (Right) */}
+            <div className="lg:col-span-3 relative rounded-2xl overflow-hidden bg-muted shadow-xl border border-black/5 h-full">
+              <Carousel
+                setApi={setMainApi}
+                className="w-full h-full group"
+                opts={{
+                  loop: true,
+                  duration: 20
+                }}
+              >
+                <CarouselContent className="h-full ml-0">
+                  {property.images.map((image, index) => (
+                    <CarouselItem key={index} className="h-full pl-0">
+                      <div className="relative w-full h-full overflow-hidden">
+                        <img
+                          src={image}
+                          alt={`Foto ${index + 1} do imóvel`}
+                          className="w-full h-full md:h-[600px] lg:object-cover"
+                        />
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+
+                {/* Pagination Dots */}
+                {property.images.length > 1 && (
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-10 transition-opacity opacity-100">
+                    {property.images.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => mainApi?.scrollTo(index)}
+                        className={cn(
+                          "h-1.5 rounded-full transition-all duration-300",
+                          selectedIndex === index
+                            ? "w-6 bg-white shadow-sm"
+                            : "w-1.5 bg-white/50 hover:bg-white/80"
+                        )}
+                        aria-label={`Ir para slide ${index + 1}`}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {property.images.length > 1 && (
+                  <>
+                    <CarouselPrevious className="left-4 opacity-0 group-hover:opacity-100 transition-all bg-white/90 hover:bg-white border-none shadow-lg text-foreground h-11 w-11" />
+                    <CarouselNext className="right-4 opacity-0 group-hover:opacity-100 transition-all bg-white/90 hover:bg-white border-none shadow-lg text-foreground h-11 w-11" />
+                  </>
+                )}
+              </Carousel>
+            </div>
           </div>
         </section>
 
