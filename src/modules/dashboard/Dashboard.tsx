@@ -2,10 +2,20 @@ import Link from "next/link";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Building2, Users, Receipt, Plus, ArrowRight, TrendingUp, Home } from "lucide-react";
+import { Building2, Users, Receipt, Plus, ArrowRight, TrendingUp, Home, ChevronLeft, ChevronRight as ChevronRightIcon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell
+} from "recharts";
 
 interface DashboardStats {
   totalImoveis: number;
@@ -19,6 +29,12 @@ interface RecentProperty {
   endereco_numero: string;
   status: string;
   inquilino_nome?: string;
+  created_at: string;
+}
+
+interface RevenueData {
+  month: string;
+  total: number;
 }
 
 export default function Dashboard() {
@@ -31,17 +47,23 @@ export default function Dashboard() {
     comprovantesGerados: 0,
   });
   const [recentProperties, setRecentProperties] = useState<RecentProperty[]>([]);
+  const [revenueData, setRevenueData] = useState<RevenueData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingProperties, setLoadingProperties] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalProperties, setTotalProperties] = useState(0);
 
-  // Carregar dados do dashboard
+  const ITEMS_PER_PAGE = 3;
+
+  // Carregar dados iniciais
   useEffect(() => {
-    loadDashboardData();
+    loadDashboardStats();
+    loadRevenueData();
+    loadProperties(1);
   }, []);
 
-  const loadDashboardData = async () => {
+  const loadDashboardStats = async () => {
     try {
-      setLoading(true);
-
       // Buscar total de imóveis
       const { count: totalImoveis } = await supabase
         .from('imoveis')
@@ -58,7 +80,64 @@ export default function Dashboard() {
         .from('comprovantes')
         .select('*', { count: 'exact', head: true });
 
-      // Buscar imóveis recentes (últimos 3)
+      setStats({
+        totalImoveis: totalImoveis || 0,
+        inquilinosAtivos: inquilinosAtivos || 0,
+        comprovantesGerados: comprovantesGerados || 0,
+      });
+      setTotalProperties(totalImoveis || 0);
+    } catch (error) {
+      console.error('Erro ao carregar estatísticas:', error);
+    }
+  };
+
+  const loadRevenueData = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('comprovantes')
+        .select('valor, mes_referencia')
+        .eq('tipo', 'pagamento')
+        .order('mes_referencia', { ascending: true });
+
+      if (error) throw error;
+
+      // Agrupar por mês
+      const months: Record<string, number> = {};
+      const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+
+      // Inicializar últimos 6 meses com zero
+      const now = new Date();
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const key = `${monthNames[d.getMonth()]}/${d.getFullYear().toString().slice(-2)}`;
+        months[key] = 0;
+      }
+
+      data?.forEach(item => {
+        const date = new Date(item.mes_referencia);
+        const key = `${monthNames[date.getMonth()]}/${date.getFullYear().toString().slice(-2)}`;
+        if (months[key] !== undefined) {
+          months[key] += Number(item.valor);
+        }
+      });
+
+      const chartData = Object.entries(months).map(([month, total]) => ({
+        month,
+        total
+      }));
+
+      setRevenueData(chartData);
+    } catch (error) {
+      console.error('Erro ao carregar dados de receita:', error);
+    }
+  };
+
+  const loadProperties = async (page: number) => {
+    try {
+      setLoadingProperties(true);
+      const from = (page - 1) * ITEMS_PER_PAGE;
+      const to = from + ITEMS_PER_PAGE - 1;
+
       const { data: imoveisRecentes } = await supabase
         .from('imoveis')
         .select(`
@@ -66,31 +145,29 @@ export default function Dashboard() {
           endereco_rua,
           endereco_numero,
           status,
+          created_at,
           inquilinos(nome_completo)
         `)
         .order('created_at', { ascending: false })
-        .limit(3);
+        .range(from, to);
 
-      // Formatar imóveis recentes
       const formattedProperties = imoveisRecentes?.map(imovel => ({
         id: imovel.id,
         endereco_rua: imovel.endereco_rua,
         endereco_numero: imovel.endereco_numero,
         status: imovel.status,
+        created_at: imovel.created_at,
         inquilino_nome: Array.isArray(imovel.inquilinos) && imovel.inquilinos.length > 0
           ? imovel.inquilinos[0].nome_completo
           : null,
       })) || [];
 
-      setStats({
-        totalImoveis: totalImoveis || 0,
-        inquilinosAtivos: inquilinosAtivos || 0,
-        comprovantesGerados: comprovantesGerados || 0,
-      });
       setRecentProperties(formattedProperties);
+      setCurrentPage(page);
     } catch (error) {
-      console.error('Erro ao carregar dados do dashboard:', error);
+      console.error('Erro ao carregar imóveis:', error);
     } finally {
+      setLoadingProperties(false);
       setLoading(false);
     }
   };
@@ -189,21 +266,155 @@ export default function Dashboard() {
           )}
         </div>
 
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Revenue Chart */}
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="font-display text-lg flex items-center justify-between">
+                Receita Bruta Mensal
+                {revenueData.length > 0 && (
+                  <span className="text-xs font-normal text-muted-foreground bg-accent px-2 py-1 rounded-md">
+                    Últimos 6 meses
+                  </span>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px] w-full mt-4">
+                {loading ? (
+                  <div className="h-full w-full bg-accent/50 animate-pulse rounded-lg" />
+                ) : revenueData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={revenueData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                      <XAxis
+                        dataKey="month"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: "#64748b", fontSize: 12 }}
+                        dy={10}
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: "#64748b", fontSize: 12 }}
+                        tickFormatter={(value) => `R$ ${value >= 1000 ? `${(value / 1000).toFixed(1)}k` : value}`}
+                      />
+                      <Tooltip
+                        cursor={{ fill: '#f1f5f9' }}
+                        contentStyle={{
+                          borderRadius: '12px',
+                          border: 'none',
+                          boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
+                          padding: '12px'
+                        }}
+                        formatter={(value: number) => [
+                          value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                          'Receita'
+                        ]}
+                      />
+                      <Bar
+                        dataKey="total"
+                        radius={[6, 6, 0, 0]}
+                        barSize={32}
+                      >
+                        {revenueData.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={index === revenueData.length - 1 ? "#3b82f6" : "#94a3b8"}
+                            className="transition-all duration-300 hover:fill-blue-400"
+                          />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex h-full flex-col items-center justify-center text-center">
+                    <TrendingUp className="h-8 w-8 text-muted-foreground/30 mb-2" />
+                    <p className="text-sm text-muted-foreground">Sem dados de pagamento para exibir.</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Quick Stats / Info */}
+          <div className="space-y-6">
+            <Card className="border-blue-500 bg-blue-500">
+              <CardContent className="flex items-center gap-4 p-6">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-400">
+                  <TrendingUp className="h-5 w-5 text-white" aria-hidden="true" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-white">Dica: Compartilhe</p>
+                  <p className="text-sm text-white/80">
+                    Gere links únicos para cada imóvel e compartilhe.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                  Taxa de Ocupação
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-end gap-2">
+                  <span className="text-3xl font-bold">
+                    {stats.totalImoveis > 0
+                      ? Math.round((stats.inquilinosAtivos / stats.totalImoveis) * 100)
+                      : 0}%
+                  </span>
+                  <span className="text-sm text-muted-foreground mb-1">dos imóveis alugados</span>
+                </div>
+                <div className="mt-4 h-2 w-full bg-accent rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-blue-500 rounded-full transition-all duration-500"
+                    style={{ width: `${stats.totalImoveis > 0 ? (stats.inquilinosAtivos / stats.totalImoveis) * 100 : 0}%` }}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
         {/* Recent Properties */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="font-display text-lg">Imóveis recentes</CardTitle>
-            {recentProperties.length > 0 && (
-              <Link href="/dashboard/imoveis">
-                <Button variant="ghost" size="sm" className="gap-1">
-                  Ver todos
-                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <div>
+              <CardTitle className="font-display text-lg">Seus imóveis</CardTitle>
+              <p className="text-xs text-muted-foreground mt-1">
+                Mostrando {recentProperties.length} de {totalProperties} imóveis
+              </p>
+            </div>
+            {totalProperties > 3 && (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => loadProperties(currentPage - 1)}
+                  disabled={currentPage === 1 || loadingProperties}
+                >
+                  <ChevronLeft className="h-4 w-4" />
                 </Button>
-              </Link>
+                <span className="text-sm font-medium w-4 text-center">{currentPage}</span>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => loadProperties(currentPage + 1)}
+                  disabled={currentPage * ITEMS_PER_PAGE >= totalProperties || loadingProperties}
+                >
+                  <ChevronRightIcon className="h-4 w-4" />
+                </Button>
+              </div>
             )}
           </CardHeader>
           <CardContent>
-            {loading ? (
+            {loadingProperties ? (
               // Loading skeleton
               <div className="space-y-4">
                 {Array.from({ length: 3 }).map((_, index) => (
@@ -227,68 +438,66 @@ export default function Dashboard() {
                 {recentProperties.map((property) => (
                   <div
                     key={property.id}
-                    className="flex items-center justify-between rounded-lg border border-border/50 p-4 transition-colors hover:bg-accent/50"
+                    className="group flex items-center justify-between rounded-lg border border-border/50 p-4 transition-all hover:bg-accent/50 hover:border-blue-500/20"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent group-hover:bg-blue-50 transition-colors">
                         <Building2 className="h-5 w-5 text-blue-500" aria-hidden="true" />
                       </div>
                       <div>
                         <p className="font-medium">
                           {property.endereco_rua}, {property.endereco_numero}
                         </p>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-xs text-muted-foreground">
                           {property.inquilino_nome || "Sem inquilino"}
                         </p>
                       </div>
                     </div>
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-medium ${property.status === "alugado"
-                        ? "bg-success/10 text-success"
-                        : "bg-warning/10 text-warning"
-                        }`}
-                    >
-                      {property.status === "alugado" ? "Ocupado" : "Disponível"}
-                    </span>
+                    <div className="flex items-center gap-4">
+                      <span
+                        className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${property.status === "alugado"
+                          ? "bg-green-50 text-green-700 border border-green-200"
+                          : "bg-orange-50 text-orange-700 border border-orange-200"
+                          }`}
+                      >
+                        {property.status === "alugado" ? "Ocupado" : "Disponível"}
+                      </span>
+                      <Link href={`/dashboard/imoveis/${property.id}`}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                          <ArrowRight className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                    </div>
                   </div>
                 ))}
               </div>
             ) : (
-              // Estado vazio - Nenhum imóvel cadastrado
+              // Estado vazio
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-accent">
                   <Home className="h-8 w-8 text-muted-foreground" aria-hidden="true" />
                 </div>
-                <h3 className="mb-2 font-medium text-lg">Nenhum imóvel cadastrado</h3>
-                <p className="mb-6 text-sm text-muted-foreground max-w-sm">
-                  Comece cadastrando seu primeiro imóvel para gerenciar aluguéis e inquilinos.
-                </p>
-                <Link href="/dashboard/imoveis/novo">
-                  <Button className="gap-2 bg-blue-500 hover:bg-blue-400">
-                    <Plus className="h-4 w-4" aria-hidden="true" />
-                    Cadastrar primeiro imóvel
-                  </Button>
-                </Link>
+                <h3 className="mb-2 font-medium text-lg">Nenhum imóvel encontrado</h3>
+                {stats.totalImoveis === 0 ? (
+                  <>
+                    <p className="mb-6 text-sm text-muted-foreground max-w-sm">
+                      Comece cadastrando seu primeiro imóvel para gerenciar aluguéis e inquilinos.
+                    </p>
+                    <Link href="/dashboard/imoveis/novo">
+                      <Button className="gap-2 bg-blue-500 hover:bg-blue-400">
+                        <Plus className="h-4 w-4" aria-hidden="true" />
+                        Cadastrar primeiro imóvel
+                      </Button>
+                    </Link>
+                  </>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Não há imóveis nesta página.</p>
+                )}
               </div>
             )}
           </CardContent>
         </Card>
-
-        {/* Quick Tip */}
-        <Card className="border-blue-500 bg-blue-500">
-          <CardContent className="flex items-center gap-4 p-6">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-400">
-              <TrendingUp className="h-5 w-5 text-white" aria-hidden="true" />
-            </div>
-            <div className="flex-1">
-              <p className="font-medium text-white">Dica: Compartilhe seus imóveis</p>
-              <p className="text-sm text-white/80">
-                Gere links únicos para cada imóvel e compartilhe nas redes sociais para atrair mais inquilinos.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      </div >
     </>
   );
 }
