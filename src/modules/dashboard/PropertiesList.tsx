@@ -354,7 +354,7 @@ const PropertyCard = memo(({ property, index, onShare, onDelete }: PropertyCardP
                 {property.status === "disponível" && (
                   <DropdownMenuItem asChild>
                     <Link href={`/dashboard/imoveis/${property.id}/inquilino`} className="cursor-pointer">
-                      <Plus className="mr-2 h-4 w-4" />
+                      <Plus className="mr-2 h-4 w-4 text-blue-500" />
                       Cadastrar inquilino
                     </Link>
                   </DropdownMenuItem>
