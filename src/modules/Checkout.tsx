@@ -109,43 +109,14 @@ export default function Checkout() {
     const checkPaymentStatus = async () => {
         if (loading) return;
 
-        console.log('🔄 Verificação manual iniciada...');
         setLoading(true);
-        const toastId = toast.loading("Verificando status no banco de dados...");
+        toast.info("Sincronizando com o banco de dados. Por favor, aguarde...");
 
-        try {
-            // USAMOS O SUPABASE DIRETO para evitar lag de estado do contexto
-            const { data, error } = await supabase
-                .from('profiles')
-                .select('subscription_status')
-                .eq('id', user?.id)
-                .single();
-
-            if (error) throw error;
-
-            console.log('📊 Status atual no banco:', data.subscription_status);
-
-            if (data.subscription_status === 'active') {
-                console.log('🎉 Pagamento confirmado!');
-                toast.success("Pagamento detectado! Ativando sua conta...", { id: toastId });
-
-                // Atualiza o contexto global para que outras partes do app saibam
-                await refreshProfile();
-
-                setSuccess(true);
-            } else {
-                console.log('⏳ Ainda pendente...');
-                toast.warning("Pagamento ainda não detectado. Se você pagou agora, aguarde uns segundos.", { id: toastId });
-                // Mesmo falhando, o refreshProfile ajuda a sincronizar o estado local
-                await refreshProfile();
-            }
-        } catch (error: any) {
-            console.error('❌ Erro na verificação:', error);
-            toast.error("Erro ao conectar com o banco de dados.", { id: toastId });
-        } finally {
-            setLoading(false);
-            console.log('🔚 Verificação concluída.');
-        }
+        // Simples e direto: espera 5 segundos e recarrega a página
+        // Ao recarregar, o AuthContext buscará o status real e o useEffect fará o resto
+        setTimeout(() => {
+            window.location.reload();
+        }, 5000);
     };
 
     // Tela de carregamento bloqueante (SÓ enquanto o AuthContext inicializa)
