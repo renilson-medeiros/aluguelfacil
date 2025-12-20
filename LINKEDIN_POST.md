@@ -5,7 +5,7 @@ Acabei de lançar o **Alugue Fácil** - uma plataforma completa projetada para d
 ## 🎯 O Projeto
 
 O Alugue Fácil é uma solução Full-Stack que elimina intermediários e profissionaliza o aluguel direto. Proprietários podem:
-- ✅ **Organizar seu Portfólio**: Centralize todos os seus imóveis e quartos em um só lugar.
+- ✅ **Organizar seu Portfólio**: Centralize todos os seus imóveis em um só lugar.
 - ✅ **Divulgação com Autonomia**: Gere links exclusivos para compartilhar via WhatsApp e Redes Sociais.
 - ✅ **Gestão de Locações**: Vincule inquilinos, monitore vencimentos e histórico de pagamentos.
 - ✅ **Comprovantes Instantâneos**: Emita documentos profissionais em PDF em segundos.

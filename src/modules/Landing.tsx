@@ -168,7 +168,7 @@ export default function Landing() {
                         </Button>
                       </Link>
                       <p className="mt-3 text-xs text-muted/60">
-                        Imóveis e Quartos Ilimitados
+                        Imóveis Ilimitados
                       </p>
                     </div>
                   </CardContent>

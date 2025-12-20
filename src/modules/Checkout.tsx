@@ -154,7 +154,7 @@ export default function Checkout() {
                                     </div>
                                     <div className="space-y-2">
                                         {[
-                                            "Imóveis e Quartos Ilimitados",
+                                            "Imóveis Ilimitados",
                                             "Gestão de Inquilinos",
                                             "Comprovantes em PDF ilimitados",
                                             "Suporte Prioritário",
