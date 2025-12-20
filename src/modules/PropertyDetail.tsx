@@ -31,7 +31,9 @@ import {
   UserPlus,
   UserMinus,
   Settings,
-  AlertTriangle
+
+  AlertTriangle,
+  X
 } from "lucide-react";
 import {
   Carousel,
@@ -51,6 +53,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -127,6 +136,7 @@ export default function PropertyDetail() {
   const [isTerminating, setIsTerminating] = useState(false);
   const [showTerminateDialog, setShowTerminateDialog] = useState(false);
   const [isChanging, setIsChanging] = useState(false);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
   // Sync carousels and update selected index
   useEffect(() => {
@@ -405,7 +415,65 @@ export default function PropertyDetail() {
         {/* Advanced Image Gallery */}
         <section className="container px-4 pb-8" aria-label="Galeria de fotos">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 h-[300px] md:h-[500px] lg:h-[580px]">
-            {/* Thumbnail Carousel (Left - Vertical) */}
+            {/* Main Carousel (Left) */}
+            <div className="lg:col-span-3 relative rounded-2xl overflow-hidden bg-muted shadow-xl border border-black/5 h-full">
+              <Carousel
+                setApi={setMainApi}
+                className="w-full h-full group"
+                opts={{
+                  loop: true,
+                  duration: 20
+                }}
+              >
+                <CarouselContent className="h-full ml-0">
+                  {property.images.map((image, index) => (
+                    <CarouselItem key={index} className="h-full pl-0">
+                      <div
+                        className="relative w-full h-full overflow-hidden cursor-zoom-in"
+                        onClick={() => {
+                          setSelectedIndex(index);
+                          setIsLightboxOpen(true);
+                        }}
+                      >
+                        <img
+                          src={image}
+                          alt={`Foto ${index + 1} do imóvel`}
+                          className="w-full min-h-full object-cover h-[350px] md:h-[600px] md:min-h-full md:object-cover hover:scale-105 transition-transform duration-500"
+                        />
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+
+                {/* Pagination Dots */}
+                {property.images.length > 1 && (
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-10 transition-opacity opacity-100">
+                    {property.images.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => mainApi?.scrollTo(index)}
+                        className={cn(
+                          "h-1.5 rounded-full transition-all duration-300",
+                          selectedIndex === index
+                            ? "w-6 bg-blue-600 shadow-sm"
+                            : "w-1.5 bg-white/50 hover:bg-white/80"
+                        )}
+                        aria-label={`Ir para slide ${index + 1}`}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {property.images.length > 1 && (
+                  <>
+                    <CarouselPrevious className="left-4 opacity-0 group-hover:opacity-100 transition-all bg-white/90 hover:bg-white border-none shadow-lg text-foreground h-11 w-11" />
+                    <CarouselNext className="right-4 opacity-0 group-hover:opacity-100 transition-all bg-white/90 hover:bg-white border-none shadow-lg text-foreground h-11 w-11" />
+                  </>
+                )}
+              </Carousel>
+            </div>
+
+            {/* Thumbnail Carousel (Right - Vertical) */}
             <div className="hidden lg:block lg:col-span-1 h-full overflow-hidden">
               <Carousel
                 setApi={setThumbApi}
@@ -444,59 +512,72 @@ export default function PropertyDetail() {
               </Carousel>
             </div>
 
-            {/* Main Carousel (Right) */}
-            <div className="lg:col-span-3 relative rounded-2xl overflow-hidden bg-muted shadow-xl border border-black/5 h-full">
-              <Carousel
-                setApi={setMainApi}
-                className="w-full h-full group"
-                opts={{
-                  loop: true,
-                  duration: 20
-                }}
-              >
-                <CarouselContent className="h-full ml-0">
-                  {property.images.map((image, index) => (
-                    <CarouselItem key={index} className="h-full pl-0">
-                      <div className="relative w-full h-full overflow-hidden">
-                        <img
-                          src={image}
-                          alt={`Foto ${index + 1} do imóvel`}
-                          className="w-full h-full md:h-[600px] lg:object-cover"
-                        />
-                      </div>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
 
-                {/* Pagination Dots */}
-                {property.images.length > 1 && (
-                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-10 transition-opacity opacity-100">
-                    {property.images.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => mainApi?.scrollTo(index)}
-                        className={cn(
-                          "h-1.5 rounded-full transition-all duration-300",
-                          selectedIndex === index
-                            ? "w-6 bg-white shadow-sm"
-                            : "w-1.5 bg-white/50 hover:bg-white/80"
-                        )}
-                        aria-label={`Ir para slide ${index + 1}`}
-                      />
-                    ))}
-                  </div>
-                )}
-
-                {property.images.length > 1 && (
-                  <>
-                    <CarouselPrevious className="left-4 opacity-0 group-hover:opacity-100 transition-all bg-white/90 hover:bg-white border-none shadow-lg text-foreground h-11 w-11" />
-                    <CarouselNext className="right-4 opacity-0 group-hover:opacity-100 transition-all bg-white/90 hover:bg-white border-none shadow-lg text-foreground h-11 w-11" />
-                  </>
-                )}
-              </Carousel>
-            </div>
           </div>
         </section>
+
+        {/* Lightbox Dialog */}
+        <Dialog open={isLightboxOpen} onOpenChange={setIsLightboxOpen}>
+          <DialogContent className="max-w-[100vw] h-[100vh] p-0 bg-black/5 border-none z-[150] flex flex-col items-center justify-center outline-none [&>button.opacity-70]:hidden">
+            <DialogTitle className="sr-only">Galeria de fotos</DialogTitle>
+
+            {/* Close Button */}
+            <button
+              onClick={() => setIsLightboxOpen(false)}
+              className="absolute cursor-pointer right-4 top-4 z-[160] rounded-full bg-blue-600 p-2 text-white/70 backdrop-blur-sm transition-colors hover:bg-blue-500 hover:text-white sm:right-8 sm:top-8"
+              aria-label="Fechar galeria"
+            >
+              <X className="h-6 w-6" />
+            </button>
+
+            <Carousel
+              setApi={setMainApi}
+              className="w-full h-full flex items-center justify-center [&_div.overflow-hidden]:h-full"
+              opts={{
+                loop: true,
+                startIndex: selectedIndex,
+              }}
+            >
+              <CarouselContent className="h-full m-0 p-0">
+                {property.images.map((image, index) => (
+                  <CarouselItem key={index} className="h-full flex items-center justify-center p-0 pl-0">
+                    <div className="relative w-full h-full flex items-center justify-center">
+                      <img
+                        src={image}
+                        alt={`Foto ${index + 1} ampliada`}
+                        className="max-h-[85vh] max-w-[95vw] rounded-xl object-contain select-none shadow-2xl"
+                      />
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+
+              {property.images.length > 1 && (
+                <>
+                  <CarouselPrevious
+                    className="fixed left-2 sm:left-4 top-1/2 -translate-y-1/2 h-12 w-12 border-none bg-background text-blue-600 hover:text-blue-600 hover:bg-background/80 z-[160] active:scale-95 transition-all"
+                  />
+                  <CarouselNext
+                    className="fixed right-2 sm:right-4 top-1/2 -translate-y-1/2 h-12 w-12 border-none bg-background text-blue-600 hover:text-blue-600 hover:bg-background/80 z-[160] active:scale-95 transition-all"
+                  />
+                </>
+              )}
+            </Carousel>
+
+            {/* Thumbnails Indicator */}
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-[160] flex gap-2 overflow-x-auto max-w-[90vw] p-2 no-scrollbar">
+              {property.images.map((_, index) => (
+                <div
+                  key={index}
+                  className={cn(
+                    "h-1.5 rounded-full transition-all duration-300 shadow-sm",
+                    selectedIndex === index ? "bg-blue-600 w-6" : "w-1.5 bg-white/40"
+                  )}
+                />
+              ))}
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Content */}
         <section className="container px-4 pb-16">
