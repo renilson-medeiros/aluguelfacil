@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import Providers from "./providers";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 
 export const metadata: Metadata = {
     title: {
@@ -71,8 +72,10 @@ export default function RootLayout({
     return (
         <html lang="pt-BR">
             <body>
+                <GoogleAnalytics />
                 <Providers>{children}</Providers>
             </body>
         </html>
     );
 }
+
