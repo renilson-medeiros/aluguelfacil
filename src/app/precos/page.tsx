@@ -67,7 +67,7 @@ export default function PricingPage() {
 
                             <ul className="space-y-4 mb-8 flex-1">
                                 {[
-                                    "Imóveis e quartos ilimitados",
+                                    "Imóveis ilimitados",
                                     "Gestão completa de histórico",
                                     "Fotos ilimitadas por imóvel",
                                     "Comprovantes com sua logo",
