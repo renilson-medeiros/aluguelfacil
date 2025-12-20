@@ -1,5 +1,5 @@
 // src\contexts\AuthContext.tsx
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { supabase, Profile } from '../lib/supabase';
 import { User } from '@supabase/supabase-js';
 
@@ -56,7 +56,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         setUser(session.user);
-        await loadProfileWithRetry(session.user.id);
+        if (session.user) {
+          loadProfileWithRetry(session.user.id, 2);
+        } else {
+          setProfile(null);
+        }
         setLoading(false);
       }
     );
@@ -68,7 +72,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 
   // LOAD PROFILE WITH RETRY
-  const loadProfileWithRetry = async (userId: string, retries = 5) => {
+  const loadProfileWithRetry = useCallback(async (userId: string, retries = 5) => {
     for (let i = 0; i < retries; i++) {
       const { data, error } = await supabase
         .from('profiles')
@@ -90,11 +94,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await new Promise((res) => setTimeout(res, 200));
     }
 
-    console.warn('Profile não encontrado após retries');
     setProfile(null);
     return null;
-  };
+  }, []);
 
+  // MEMOIZED REFRESH
+  const refreshProfile = useCallback(async () => {
+    if (user) {
+      return await loadProfileWithRetry(user.id, 2);
+    }
+    return null;
+  }, [user]);
 
   // LOGIN
   const signIn = async (email: string, password: string) => {
@@ -143,22 +153,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setProfile(null);
   };
 
+  const value = useMemo(() => ({
+    user,
+    profile,
+    loading,
+    signIn,
+    signUp,
+    signOut,
+    isAdmin: profile?.role === 'admin',
+    refreshProfile
+  }), [user, profile, loading, refreshProfile]);
+
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        profile,
-        loading,
-        signIn,
-        signUp,
-        signOut,
-        isAdmin: profile?.role === 'admin',
-        refreshProfile: async () => {
-          if (user) return await loadProfileWithRetry(user.id, 1);
-          return null;
-        }
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
