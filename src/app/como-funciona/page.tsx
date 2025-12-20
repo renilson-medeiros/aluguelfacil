@@ -1,139 +1,150 @@
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
-import {
-    Building2,
-    MapPin,
-    Users,
-    Receipt,
-    Share2,
-    CheckCircle2,
-    ArrowRight
-} from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowRight, Building2, CheckCircle2, FileText, Share2, Users } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
-export default function HowItWorksPage() {
+export default function ComoFuncionaPage() {
     return (
-        <div className="flex min-h-screen flex-col">
-            <Header />
-            <main className="flex-1">
-                {/* Hero Section */}
-                <section className="container px-4 py-16 md:py-24 text-center">
-                    <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
-                        Sua gestão de aluguéis, <span className="text-blue-600">simples e direta</span>
+        <div className="flex flex-col min-h-screen bg-background">
+            {/* Hero Section */}
+            <section className="py-20 px-4 md:px-6 lg:px-8 bg-gradient-to-b from-primary/5 to-background text-center">
+                <div className="max-w-4xl mx-auto space-y-6">
+                    <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-foreground">
+                        Gerencie <span className="text-blue-600">aluguéis</span> sem dor de cabeça
                     </h1>
-                    <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
-                        O Lugo oferece autonomia total para proprietários, eliminando intermediários e automatizando a gestão do dia a dia.
+                    <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                        Descubra como o Lugo simplifica a vida de proprietários independentes.
+                        Do cadastro do imóvel ao recibo no WhatsApp, tudo em um só lugar.
                     </p>
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <Link href="/registro">
-                            <Button size="lg" className="bg-blue-600 hover:bg-blue-500 gap-2 w-full sm:w-auto">
-                                Começar agora
-                                <ArrowRight className="h-4 w-4" />
-                            </Button>
-                        </Link>
+                    <div className="flex justify-center gap-4 pt-4">
+                        <Button size="lg" className="bg-blue-600 hover:bg-blue-500" asChild>
+                            <Link href="/register">Começar Grátis</Link>
+                        </Button>
+                        <Button size="lg" variant="outline" asChild>
+                            <Link href="/contato">Falar Conosco</Link>
+                        </Button>
                     </div>
-                </section>
+                </div>
+            </section>
 
-                {/* For Owners */}
-                <section className="bg-secondary/30 py-16 md:py-24">
-                    <div className="container px-4">
-                        <div className="text-center mb-16">
-                            <h2 className="font-display text-3xl font-bold mb-4">A Ferramenta do Proprietário</h2>
-                            <p className="text-muted-foreground">Tudo o que você precisa para gerenciar suas locações com autonomia e profissionalismo.</p>
+            {/* Steps Section */}
+            <section className="py-16 px-4 md:px-6 lg:px-8">
+                <div className="max-w-6xl mx-auto space-y-24">
+
+                    {/* Step 1 */}
+                    <div className="grid md:grid-cols-2 gap-12 items-center">
+                        <div className="space-y-6">
+                            <div className="inline-flex items-center gap-2 pl-1 pr-2 py-1 rounded-full bg-blue-50 text-primary font-medium text-sm">
+                                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-primary-foreground text-xs">1</span>
+                                Primeiro Passo
+                            </div>
+                            <h2 className="text-3xl font-bold">Cadastre seus Imóveis</h2>
+                            <p className="text-lg text-muted-foreground">
+                                Comece organizando seu portfólio. Adicione fotos, valor do aluguel, endereço e detalhes como número de quartos.
+                                Tudo fica salvo e organizado por propriedade.
+                            </p>
+                            <ul className="space-y-3">
+                                <li className="flex items-center gap-2 text-muted-foreground">
+                                    <CheckCircle2 className="h-5 w-5 text-green-500" />
+                                    Galeria de fotos automática
+                                </li>
+                                <li className="flex items-center gap-2 text-muted-foreground">
+                                    <CheckCircle2 className="h-5 w-5 text-green-500" />
+                                    Histórico de valores
+                                </li>
+                            </ul>
                         </div>
-
-                        <div className="grid gap-8 md:grid-cols-3">
-                            <div className="bg-background p-8 rounded-2xl shadow-sm border border-border/50">
-                                <div className="h-12 w-12 bg-accent rounded-xl flex items-center justify-center mb-6">
-                                    <Building2 className="h-6 w-6 text-blue-600" />
-                                </div>
-                                <h3 className="text-xl font-bold mb-4">1. Organize seu Portfólio</h3>
-                                <p className="text-muted-foreground">
-                                    Cadastre seus imóveis com fotos, regras e valores detalhados. Mantenha todas as informações centralizadas e organizadas em um só lugar.
-                                </p>
+                        <Card className="bg-muted/50 border-dashed aspect-video flex items-center justify-center relative overflow-hidden group">
+                            {/* Placeholder for Screenshot */}
+                            <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground/50 transition-all group-hover:scale-105">
+                                <Image 
+                                    src="/preview_cadastr.png" 
+                                    alt="Screenshot"
+                                    fill
+                                    className="w-full h-full object-top" 
+                                />
                             </div>
+                        </Card>
+                    </div>
 
-                            <div className="bg-background p-8 rounded-2xl shadow-sm border border-border/50">
-                                <div className="h-12 w-12 bg-accent rounded-xl flex items-center justify-center mb-6">
-                                    <Share2 className="h-6 w-6 text-blue-600" />
-                                </div>
-                                <h3 className="text-xl font-bold mb-4">2. Divulgação com Autonomia</h3>
-                                <p className="text-muted-foreground">
-                                    Gere links exclusivos para compartilhar em redes sociais e WhatsApp. Receba o contato de interessados diretamente no seu celular, sem taxas de intermediação.
-                                </p>
+                    {/* Step 2 */}
+                    <div className="grid md:grid-cols-2 gap-12 items-center">
+                        <div className="space-y-6 md:order-2">
+                            <div className="inline-flex items-center gap-2 pl-1 pr-2 py-1 rounded-full bg-blue-50 text-primary font-medium text-sm">
+                                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-primary-foreground text-xs">2</span>
+                                Divulgação
                             </div>
-
-                            <div className="bg-background p-8 rounded-2xl shadow-sm border border-border/50">
-                                <div className="h-12 w-12 bg-accent rounded-xl flex items-center justify-center mb-6">
-                                    <Users className="h-6 w-6 text-blue-600" />
-                                </div>
-                                <h3 className="text-xl font-bold mb-4">3. Gestão de Locações</h3>
-                                <p className="text-muted-foreground">
-                                    Vincule inquilinos, monitore vencimentos e emita comprovantes profissionais instantaneamente. Transforme sua gestão em um processo ágil e seguro.
-                                </p>
-                            </div>
+                            <h2 className="text-3xl font-bold">Divulgue em Segundos</h2>
+                            <p className="text-lg text-muted-foreground">
+                                Imóvel cadastrado gera um link exclusivo. Compartilhe no WhatsApp, Facebook ou Instagram.
+                                Quem clica vê uma página profissional com fotos e informações, sem precisar de app.
+                            </p>
                         </div>
+                        <Card className="bg-muted/50 border-dashed aspect-video flex items-center justify-center relative overflow-hidden group md:order-1">
+                            {/* Placeholder for Screenshot */}
+                            <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground/50 transition-all group-hover:scale-105">
+                                <Image 
+                                    src="/preview_detalhes.png" 
+                                    alt="Screenshot"
+                                    fill
+                                    className="w-full h-full object-top" 
+                                />
+                            </div>
+                        </Card>
                     </div>
-                </section>
 
-                {/* For Tenants */}
-                <section className="py-16 md:py-24">
-                    <div className="container px-4">
-                        <div className="flex flex-col md:flex-row gap-12 items-center">
-                            <div className="flex-1 space-y-6">
-                                <h2 className="font-display text-3xl font-bold">Experiência de Locação Premium</h2>
-                                <p className="text-lg text-muted-foreground">
-                                    Garantimos que o interessado receba uma apresentação impecável do seu imóvel, com transparência e facilidade de contato imediato.
-                                </p>
-                                <ul className="space-y-4">
-                                    {[
-                                        "Fotos em alta qualidade com galeria intuitiva",
-                                        "Informações detalhadas sobre regras (pets, crianças, etc)",
-                                        "Valores claros e detalhados (Aluguel, IPTU, Condomínio)",
-                                        "Botão direto para contato via WhatsApp",
-                                        "Acesso fácil via dispositivos móveis"
-                                    ].map((item, i) => (
-                                        <li key={i} className="flex items-center gap-3">
-                                            <CheckCircle2 className="h-5 w-5 text-blue-600" />
-                                            <span>{item}</span>
-                                        </li>
-                                    ))}
-                                </ul>
+                    {/* Step 3 */}
+                    <div className="grid md:grid-cols-2 gap-12 items-center">
+                        <div className="space-y-6">
+                            <div className="inline-flex items-center gap-2 pl-1 pr-2 py-1 rounded-full bg-blue-50 text-primary font-medium text-sm">
+                                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-primary-foreground text-xs">3</span>
+                                Gestão
                             </div>
-                            <div className="flex-1 bg-accent/50 rounded-2xl p-8 border border-border">
-                                <div className="bg-background rounded-xl p-6 shadow-xl space-y-4">
-                                    <div className="h-40 bg-muted rounded-lg flex items-center justify-center">
-                                        <MapPin className="h-12 w-12 text-muted-foreground/30" />
-                                    </div>
-                                    <div className="h-6 w-3/4 bg-muted rounded"></div>
-                                    <div className="h-4 w-1/2 bg-muted rounded"></div>
-                                    <div className="flex justify-between items-center pt-4">
-                                        <div className="h-6 w-24 bg-blue-600/20 rounded"></div>
-                                        <div className="h-10 w-32 bg-blue-600 rounded-lg"></div>
-                                    </div>
-                                </div>
-                            </div>
+                            <h2 className="text-3xl font-bold">Controle e Recibos</h2>
+                            <p className="text-lg text-muted-foreground">
+                                Adicione o inquilino, anexe o contrato e defina o vencimento.
+                                Quando receber, gere um recibo PDF profissional com um clique e envie na hora.
+                            </p>
+                            <ul className="space-y-3">
+                                <li className="flex items-center gap-2 text-muted-foreground">
+                                    <CheckCircle2 className="h-5 w-5 text-green-500" />
+                                    Geração de PDF instantânea
+                                </li>
+                                <li className="flex items-center gap-2 text-muted-foreground">
+                                    <CheckCircle2 className="h-5 w-5 text-green-500" />
+                                    Status de pagamento visual (Em dia/Atrasado)
+                                </li>
+                            </ul>
                         </div>
+                        <Card className="bg-muted/50 border-dashed aspect-video flex items-center justify-center relative overflow-hidden group">
+                            {/* Placeholder for Screenshot */}
+                            <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground/50 transition-all group-hover:scale-105">
+                                <Image 
+                                    src="/preview_comprovant.png" 
+                                    alt="Screenshot"
+                                    fill
+                                    className="w-full h-full object-top" 
+                                />
+                            </div>
+                        </Card>
                     </div>
-                </section>
 
-                {/* Call to action */}
-                <section className="container px-4 py-16 md:py-24 text-center">
-                    <div className="bg-blue-600 rounded-2xl p-12 text-white">
-                        <h2 className="text-3xl font-bold mb-6">Pronto para simplificar seus aluguéis?</h2>
-                        <p className="text-blue-100 text-lg mb-10 max-w-xl mx-auto">
-                            Junte-se a proprietários que já estão usando o Lugo para organizar sua gestão.
-                        </p>
-                        <Link href="/registro">
-                            <Button size="lg" variant="secondary" className="text-blue-600">
-                                Criar minha conta grátis
-                            </Button>
-                        </Link>
-                    </div>
-                </section>
-            </main>
-            <Footer />
+                </div>
+            </section>
+
+            {/* CTA Section */}
+            <section className="py-20 px-4 bg-blue-600 text-primary-foreground mt-auto">
+                <div className="max-w-3xl mx-auto text-center space-y-8">
+                    <h2 className="text-3xl md:text-4xl font-bold">Pronto para organizar seus aluguéis?</h2>
+                    <p className="text-lg opacity-90">
+                        Comece hoje mesmo, gratuitamente. Sem cartão de crédito.
+                    </p>
+                    <Button size="lg" variant="secondary" asChild className="text-blue-600">
+                        <Link href="/register">Criar Conta Grátis</Link>
+                    </Button>
+                </div>
+            </section>
         </div>
     );
 }

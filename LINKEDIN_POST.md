@@ -1,59 +1,35 @@
-# 🏠 Lugo - Sua Gestão de Aluguéis, Simples e Direta
+# 🚀 Lançamento: Lugo - Gestão de Aluguéis com Next.js 16 & Tech Stack de Ponta
 
-Acabei de lançar o **Lugo** - uma plataforma completa projetada para dar autonomia total aos proprietários na gestão de seus imóveis e locações! 🚀
+É com muito orgulho que apresento o **Lugo**, uma plataforma SaaS completa que desenvolvi para transformar a maneira como proprietários independentes gerenciam seus imóveis!
 
-## 🎯 O Projeto
+O objetivo? Eliminar planilhas bagunçadas e a dependência de imobiliárias para quem quer gerir seus próprios bens com profissionalismo.
 
-A Lugo é uma solução Full-Stack que elimina intermediários e profissionaliza o aluguel direto. Proprietários podem:
-- ✅ **Organizar seu Portfólio**: Centralize todos os seus imóveis em um só lugar.
-- ✅ **Divulgação com Autonomia**: Gere links exclusivos para compartilhar via WhatsApp e Redes Sociais.
-- ✅ **Gestão de Locações**: Vincule inquilinos, monitore vencimentos e histórico de pagamentos.
-- ✅ **Comprovantes Instantâneos**: Emita documentos profissionais em PDF em segundos.
+## 🌟 O que há de novo?
 
-## 💻 Stack Tecnológica
+Na última semana, foquei intensamente em polimento e features avançadas de **Realtime** e **UX**:
 
-**Frontend:**
-- **Next.js 14** (App Router & Server Actions)
-- **TypeScript 5.0** (Strict Mode)
-- **Tailwind CSS** + **shadcn/ui**
-- **Lucide React** para iconografia
+- 💳 **Pagamentos em Tempo Real**: Integração profunda com **Asaas** e **Supabase Realtime**. O status da assinatura atualiza instantaneamente na tela do usuário sem refresh ("Zero-click activation").
+- 📂 **Gestão de Arquivos Inteligente**: Sistema robusto de upload com **UploadThing** e **Supabase Storage**, organizando contratos e fotos automaticamente por inquilino e imóvel.
+- 📱 **Mobile First & Lightbox**: Experiência visual refinada com galeria de fotos imersiva e responsividade total.
+- 🧾 **Automação**: Geração automática de recibos em PDF e novos fluxos de cadastro otimizados.
 
-**Backend:**
-- **Supabase** (PostgreSQL)
-- **Supabase Auth** (Gestão de Acesso)
-- **Supabase Storage** (Armazenamento de Fotos e Contratos)
-- **Row Level Security (RLS)** para proteção de dados granular
+## �️ Stack Tecnológica (Bleeding Edge)
 
-## 🚀 Destaques Técnicos
+Este projeto foi uma oportunidade de explorar o que há de mais moderno no ecossistema React:
 
-### Performance & UX
-- ⚡ **Otimização de Imagens**: Next.js Image para carregamento ultra-rápido.
-- 📱 **Design Responsivo**: Experiência premium em qualquer dispositivo.
-- 🔄 **State Management**: React Hooks customizados e otimizações contra re-renders desnecessários.
-- 🏗️ **Arquitetura Modular**: Componentes reutilizáveis e separação clara de responsabilidades.
+- **Frontend**: [Next.js 16](https://nextjs.org) (App Router, Server Actions) & [React 18+](https://react.dev)
+- **Estilização**: [Tailwind CSS 4](https://tailwindcss.com) (Alpha) + shadcn/ui + Lucide Icons
+- **Backend & Data**: [Supabase](https://supabase.com) (Postgres, Auth, Realtime, Storage, RLS)
+- **Uploads**: [UploadThing](https://uploadthing.com)
+- **Linguagem**: TypeScript 5.8 (Strict Mode)
+- **Forms**: React Hook Form + Zod
 
-### Segurança & Robustez
-- 🛡️ **Proteção de Dados**: Segurança em nível de banco de dados com RLS.
-- 📋 **Validações Rigorosas**: Sanitização de dados e máscaras automáticas (CPF, telefone, CEP).
-- 🔐 **Navegação Segura**: Proteção de rotas via Middleware.
+## 🧠 Desafios & Aprendizados
 
-## 🎓 Competências Demonstradas
-
-- Desenvolvimento Full-Stack moderno.
-- UI/UX focado em conversão e usabilidade.
-- Solução de problemas reais do mercado imobiliário.
-
-## 🔗 Link
-
-- **Demo**: Acessar [Lugo](https://alugo.vercel.app)
+O maior desafio foi orquestrar a sincronização de pagamentos via Webhook com a UI do cliente. Utilizar *Supabase Realtime* para ouvir as mudanças no banco de dados e refletir na interface instantaneamente elevou a UX a outro nível.
 
 ---
 
-**Tecnologias**: #NextJS #TypeScript #Supabase #React #TailwindCSS #PostgreSQL #WebDevelopment #FullStack #SaaS #PropTech
+🔗 **Plataforma**: [Acesse o Lugo](https://alugo.vercel.app)
 
-🎯 **Acesse agora**: Experimente o Lugo gratuitamente por 7 dias!
-
-Feedback e sugestões são muito bem-vindos! 💬
-
-#DesenvolvimentoWeb #Frontend #Backend #ProductDesign #SoftwareArchitecture
-
+#NextJS #React #Supabase #TailwindCSS #FullStack #WebDevelopment #SaaS #Realtime #Asaas #Engineering
