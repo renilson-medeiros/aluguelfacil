@@ -73,47 +73,43 @@ export default function Checkout() {
                     filter: `id=eq.${user.id}`
                 },
                 (payload) => {
-                    console.log('⚡ Mudança detectada via Realtime:', payload);
-                    const newStatus = payload.new.subscription_status;
-                    if (newStatus === 'active') {
-                        toast.success("Pagamento confirmado instantaneamente!");
+                    console.log('⚡ Mudança Realtime recebida:', payload);
+                    if (payload.new.subscription_status === 'active') {
+                        toast.success("Pagamento confirmado via Realtime!");
                         setSuccess(true);
-                        // Atualiza o contexto global para garantir que o resto do app saiba
                         refreshProfile();
                     }
                 }
             )
-            .subscribe();
+            .subscribe((status) => {
+                console.log('📡 Status da conexão Realtime:', status);
+            });
 
         return () => {
+            console.log('📡 Finalizando canal Realtime');
             supabase.removeChannel(channel);
         };
-    }, [user, refreshProfile]);
+    }, [user, success, refreshProfile]);
 
-    // 4. Carrega o pagamento apenas se necessário
+    // 3. Carrega o pagamento apenas se necessário
     useEffect(() => {
         const prepareCheckout = async () => {
-            // ESSENCIAL: Esperar o Auth carregar o perfil real
-            if (authLoading || !user || !profile) return;
-
-            // Se já for ativo, não faz nada (o useEffect acima cuida)
+            if (authLoading || !user || !profile || success) return;
             if (profile.subscription_status === 'active') return;
 
-            // Só gera se for trial e ainda não tivermos pedido nesta sessão do componente
             if (!hasRequestedPayment.current && !paymentData) {
-                console.log('💎 Iniciando preparação de checkout...');
                 hasRequestedPayment.current = true;
                 await generateRealPayment();
             }
         };
 
         prepareCheckout();
-    }, [user, profile, authLoading, paymentData]);
+    }, [user, profile, authLoading, paymentData, success]);
 
     const generateRealPayment = async () => {
         try {
+            console.log('📡 Solicitando novo PIX ao Asaas...');
             setGenerating(true);
-            console.log('📡 Chamando API para gerar PIX...');
             const response = await fetch('/api/asaas/create-payment', {
                 method: 'POST',
             });
@@ -121,11 +117,11 @@ export default function Checkout() {
 
             if (data.error) throw new Error(data.error);
 
-            console.log('✅ PIX Gerado:', data.paymentId);
             setPaymentData(data);
+            console.log('✅ Pagamento gerado:', data.paymentId);
         } catch (error: any) {
             console.error('❌ Erro Asaas:', error);
-            toast.error("Erro ao gerar pagamento. Tente recarregar a página.");
+            toast.error("Erro ao gerar QR Code. Tente atualizar a página.");
             hasRequestedPayment.current = false;
         } finally {
             setGenerating(false);
@@ -143,11 +139,12 @@ export default function Checkout() {
     const checkPaymentStatus = async () => {
         if (loading) return;
 
+        console.log('🔍 Verificando status manualmente...');
         setLoading(true);
-        const toastId = toast.loading("Verificando pagamento agora...");
+        const toastId = toast.loading("Verificando com o Asaas...");
 
         try {
-            // Busca direta no banco (muito rápido)
+            // Consulta direta e rápida no banco
             const { data, error } = await supabase
                 .from('profiles')
                 .select('subscription_status')
@@ -156,8 +153,10 @@ export default function Checkout() {
 
             if (error) throw error;
 
+            console.log('📊 Status atual:', data.subscription_status);
+
             if (data.subscription_status === 'active') {
-                toast.success("Confirmado! Seu acesso foi liberado.", { id: toastId });
+                toast.success("Confirmado! Seu acesso foi liberated.", { id: toastId });
                 setSuccess(true);
                 await refreshProfile();
             } else {
