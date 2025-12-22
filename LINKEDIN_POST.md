@@ -28,6 +28,8 @@ Este projeto foi uma oportunidade de explorar o que há de mais moderno no ecoss
 
 O maior desafio foi orquestrar a sincronização de pagamentos via Webhook com a UI do cliente. Utilizar *Supabase Realtime* para ouvir as mudanças no banco de dados e refletir na interface instantaneamente elevou a UX a outro nível.
 
+Além do produto em si, este projeto reforça meu compromisso com a evolução técnica. Estou sempre buscando melhorar como dev, expandindo meu conhecimento e procurando ativamente por novos aprendizados e desafios que impulsionem minha carreira.
+
 ---
 
 🔗 **Plataforma**: [Acesse o Lugo](https://alugo.vercel.app)

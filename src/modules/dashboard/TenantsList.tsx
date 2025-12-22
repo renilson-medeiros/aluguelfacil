@@ -124,7 +124,37 @@ export default function TenantsList() {
     try {
       setIsLoading(true);
 
-      // 1. Inativar o inquilino
+      // 1. Buscar todos os comprovantes do inquilino para deletar PDFs
+      const { data: comprovantes } = await supabase
+        .from('comprovantes')
+        .select('pdf_url')
+        .eq('inquilino_id', tenant.id);
+
+      // 2. Deletar PDFs do Storage
+      if (comprovantes && comprovantes.length > 0) {
+        const pdfPaths = comprovantes
+          .filter(c => c.pdf_url)
+          .map(c => {
+            const url = new URL(c.pdf_url!);
+            const pathParts = url.pathname.split('/');
+            const bucketIndex = pathParts.findIndex(p => p === 'imoveis-fotos');
+            return pathParts.slice(bucketIndex + 1).join('/');
+          });
+
+        if (pdfPaths.length > 0) {
+          await supabase.storage
+            .from('imoveis-fotos')
+            .remove(pdfPaths);
+        }
+      }
+
+      // 3. Deletar comprovantes do banco
+      await supabase
+        .from('comprovantes')
+        .delete()
+        .eq('inquilino_id', tenant.id);
+
+      // 4. Inativar o inquilino
       const { error: tenantError } = await supabase
         .from('inquilinos')
         .update({
@@ -135,7 +165,7 @@ export default function TenantsList() {
 
       if (tenantError) throw tenantError;
 
-      // 2. Voltar o imóvel para disponível
+      // 5. Voltar o imóvel para disponível
       const { error: propertyError } = await supabase
         .from('imoveis')
         .update({ status: 'disponivel' })
@@ -144,7 +174,7 @@ export default function TenantsList() {
       if (propertyError) throw propertyError;
 
       toast.success('Locação finalizada!', {
-        description: `O contrato de ${tenant.nome_completo} foi encerrado.`
+        description: `Contrato de ${tenant.nome_completo} encerrado. PDFs removidos.`
       });
 
       await loadTenants();
