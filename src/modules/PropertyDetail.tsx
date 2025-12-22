@@ -306,7 +306,39 @@ export default function PropertyDetail() {
         .single();
 
       if (inquilino) {
-        // 2. Inativar o inquilino
+        // 2. Buscar todos os comprovantes do inquilino para deletar PDFs
+        const { data: comprovantes } = await supabase
+          .from('comprovantes')
+          .select('pdf_url')
+          .eq('inquilino_id', inquilino.id);
+
+        // 3. Deletar PDFs do Storage
+        if (comprovantes && comprovantes.length > 0) {
+          const pdfPaths = comprovantes
+            .filter(c => c.pdf_url)
+            .map(c => {
+              // Extrair o caminho do arquivo da URL
+              const url = new URL(c.pdf_url!);
+              const pathParts = url.pathname.split('/');
+              // Pegar tudo depois de 'imoveis-fotos/'
+              const bucketIndex = pathParts.findIndex(p => p === 'imoveis-fotos');
+              return pathParts.slice(bucketIndex + 1).join('/');
+            });
+
+          if (pdfPaths.length > 0) {
+            await supabase.storage
+              .from('imoveis-fotos')
+              .remove(pdfPaths);
+          }
+        }
+
+        // 4. Deletar comprovantes do banco
+        await supabase
+          .from('comprovantes')
+          .delete()
+          .eq('inquilino_id', inquilino.id);
+
+        // 5. Inativar o inquilino
         await supabase
           .from('inquilinos')
           .update({
@@ -316,7 +348,7 @@ export default function PropertyDetail() {
           .eq('id', inquilino.id);
       }
 
-      // 3. Voltar o imóvel para disponível
+      // 6. Voltar o imóvel para disponível
       const { error: propertyError } = await supabase
         .from('imoveis')
         .update({ status: 'disponivel' })
@@ -324,7 +356,9 @@ export default function PropertyDetail() {
 
       if (propertyError) throw propertyError;
 
-      toast.success('Locação finalizada!');
+      toast.success('Locação finalizada!', {
+        description: 'Comprovantes e PDFs foram removidos.'
+      });
 
       if (!isChangeFlow) {
         loadProperty(id as string);

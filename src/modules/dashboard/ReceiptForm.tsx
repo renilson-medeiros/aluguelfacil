@@ -100,6 +100,7 @@ export default function ReceiptForm() {
   const [isLoading, setIsLoading] = useState(true);
   const [showPreview, setShowPreview] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentPdfUrl, setCurrentPdfUrl] = useState<string | null>(null);
   const params = useParams();
   const id = params?.id as string;
   const isEditing = !!id && id !== 'novo';
@@ -159,8 +160,11 @@ export default function ReceiptForm() {
   }, [user, searchParams]);
 
   useEffect(() => {
-    loadTenants();
-  }, [loadTenants]);
+    if (user) {
+      loadTenants();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const loadReceipt = useCallback(async () => {
     if (!id || id === 'novo') return;
@@ -283,35 +287,118 @@ export default function ReceiptForm() {
     return formatted;
   };
 
-  const handleDownload = () => {
-    toast.success("Comprovante baixado!", {
-      description: "O PDF foi salvo no seu dispositivo.",
-    });
+  const handleDownload = async () => {
+    if (!currentPdfUrl) {
+      toast.error("PDF não disponível");
+      return;
+    }
+
+    try {
+      const response = await fetch(currentPdfUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `comprovante-${formData.tenantName}-${months[parseInt(formData.referenceMonth) - 1]}-${formData.referenceYear}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast.success("Comprovante baixado!", {
+        description: "O PDF foi salvo no seu dispositivo.",
+      });
+    } catch (error) {
+      console.error('Erro ao baixar PDF:', error);
+      toast.error("Erro ao baixar PDF");
+    }
   };
 
-  const handleShare = () => {
-    const text = `Comprovante de Pagamento - ${months[parseInt(formData.referenceMonth) - 1]}/${formData.referenceYear}\nInquilino: ${formData.tenantName}\nValor: R$ ${calculateTotal().toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+  const handleShare = async () => {
+    if (!currentPdfUrl) {
+      toast.error("PDF não disponível");
+      return;
+    }
 
-    if (navigator.share) {
-      navigator.share({
-        title: "Comprovante de Pagamento",
-        text: text,
-      });
-    } else {
-      navigator.clipboard.writeText(text);
-      toast.success("Texto copiado!", {
-        description: "Cole onde desejar para compartilhar.",
-      });
+    try {
+      const response = await fetch(currentPdfUrl);
+      const blob = await response.blob();
+      const fileName = `comprovante-${formData.tenantName}-${months[parseInt(formData.referenceMonth) - 1]}-${formData.referenceYear}.pdf`;
+      const file = new File([blob], fileName, { type: 'application/pdf' });
+
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          title: "Comprovante de Pagamento",
+          text: `Comprovante de ${months[parseInt(formData.referenceMonth) - 1]}/${formData.referenceYear} - ${formData.tenantName}`,
+          files: [file],
+        });
+        toast.success("Compartilhado com sucesso!");
+      } else {
+        await navigator.clipboard.writeText(currentPdfUrl);
+        toast.success("Link do PDF copiado!", {
+          description: "Cole o link para compartilhar o comprovante.",
+        });
+      }
+    } catch (error: any) {
+      if (error.name !== 'AbortError') {
+        console.error('Erro ao compartilhar:', error);
+        toast.error("Erro ao compartilhar PDF");
+      }
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.tenantId || !formData.propertyId) return;
+    if (!formData.tenantId || !formData.propertyId || !user) return;
 
     setIsSubmitting(true);
 
     try {
+      // 1. Preparar dados do PDF
+      const pdfData = {
+        referenceMonth: formData.referenceMonth,
+        referenceYear: formData.referenceYear,
+        tenantName: formData.tenantName,
+        tenantCpf: formData.tenantCpf,
+        propertyName: formData.propertyName,
+        propertyAddress: formData.propertyAddress,
+        rentValue: formData.rentValue,
+        condoValue: formData.condoValue,
+        iptuValue: formData.iptuValue,
+        otherValue: formData.otherValue,
+        totalValue: `R$ ${calculateTotal().toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
+        paymentDate: (formData.paymentDate || new Date()).toISOString(),
+        observations: formData.observations,
+      };
+
+      // 2. Chamar API para gerar PDF
+      const response = await fetch('/api/pdf/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          data: pdfData,
+          userId: user.id,
+          propertyId: formData.propertyId,
+          tenantId: formData.tenantId,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Erro ao gerar PDF');
+      }
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.error || 'Erro ao gerar PDF');
+      }
+
+      const { pdfUrl, pdfBuffer } = result;
+      setCurrentPdfUrl(pdfUrl);
+
+      // 3. Salvar no banco com URL do PDF
       const { error } = await supabase
         .from('comprovantes')
         .insert({
@@ -321,16 +408,30 @@ export default function ReceiptForm() {
           mes_referencia: `${formData.referenceYear}-${formData.referenceMonth.padStart(2, '0')}-01`,
           valor: calculateTotal(),
           descricao: formData.observations,
+          pdf_url: pdfUrl,
           created_at: new Date().toISOString()
         });
 
       if (error) throw error;
 
       toast.success("Comprovante gerado com sucesso!", {
-        description: "O comprovante foi salvo no histórico.",
+        description: "O PDF foi gerado e salvo no histórico.",
       });
 
-      router.push("/dashboard/comprovantes");
+      // 4. Auto-download do PDF
+      const blob = new Blob([new Uint8Array(pdfBuffer)], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `comprovante-${formData.tenantName}-${months[parseInt(formData.referenceMonth) - 1]}-${formData.referenceYear}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      setTimeout(() => {
+        router.push("/dashboard/comprovantes");
+      }, 1500);
     } catch (error: any) {
       console.error('Erro ao salvar comprovante:', error);
       toast.error('Erro ao salvar comprovante', {
