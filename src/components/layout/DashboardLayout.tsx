@@ -12,12 +12,14 @@ import {
   Settings,
   LogOut,
   Menu,
-  Plus
+  Plus,
+  Lock
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { Logo } from "@/components/ui/Logo";
+import { Paywall } from "@/components/dashboard/Paywall";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -31,7 +33,31 @@ const menuItems = [
   { icon: Settings, label: "Configurações", href: "/dashboard/configuracoes" },
 ];
 
-function NavItem({ item, isActive, onClick }: { item: typeof menuItems[0]; isActive: boolean; onClick?: () => void }) {
+function NavItem({
+  item,
+  isActive,
+  disabled,
+  onClick
+}: {
+  item: typeof menuItems[0];
+  isActive: boolean;
+  disabled?: boolean;
+  onClick?: () => void
+}) {
+  if (disabled) {
+    return (
+      <div
+        className={cn(
+          "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium opacity-50 cursor-not-allowed text-muted-foreground"
+        )}
+      >
+        <item.icon className="h-5 w-5" aria-hidden="true" />
+        {item.label}
+        <Lock className="h-3 w-3 ml-auto text-muted-foreground/50" />
+      </div>
+    );
+  }
+
   return (
     <Link
       href={item.href}
@@ -66,16 +92,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   // Verificação de Trial Expirado (Paywall)
-  const isExpired = profile?.subscription_status === 'trial' &&
+  const isExpired = !!(
+    profile?.subscription_status === 'trial' &&
     profile?.expires_at &&
-    new Date(profile.expires_at) < new Date();
+    new Date(profile.expires_at) < new Date()
+  );
 
   const isSettingsPage = pathname === "/dashboard/configuracoes";
-
-  if (isExpired && !isSettingsPage) {
-    router.push('/checkout');
-    return null; // Evita renderizar o dashboard se estiver expirado
-  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -87,13 +110,17 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
 
           <nav className="flex-1 space-y-1 p-4" aria-label="Menu do painel">
-            {menuItems.map((item) => (
-              <NavItem
-                key={item.href}
-                item={item}
-                isActive={pathname === item.href}
-              />
-            ))}
+            {menuItems.map((item) => {
+              const isDisabled = isExpired && item.href !== "/dashboard/configuracoes" && item.href !== "/dashboard";
+              return (
+                <NavItem
+                  key={item.href}
+                  item={item}
+                  isActive={pathname === item.href}
+                  disabled={isDisabled}
+                />
+              );
+            })}
           </nav>
 
           <div className="border-t border-border/40 p-4">
@@ -129,14 +156,18 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 </div>
 
                 <nav className="flex-1 space-y-1 p-4" aria-label="Menu mobile">
-                  {menuItems.map((item) => (
-                    <NavItem
-                      key={item.href}
-                      item={item}
-                      isActive={pathname === item.href}
-                      onClick={() => setIsOpen(false)}
-                    />
-                  ))}
+                  {menuItems.map((item) => {
+                    const isDisabled = isExpired && item.href !== "/dashboard/configuracoes" && item.href !== "/dashboard";
+                    return (
+                      <NavItem
+                        key={item.href}
+                        item={item}
+                        isActive={pathname === item.href}
+                        disabled={isDisabled}
+                        onClick={() => setIsOpen(false)}
+                      />
+                    );
+                  })}
                 </nav>
 
                 <div className="border-t border-border/40 p-4">
@@ -158,9 +189,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Main Content */}
       <main className="lg:pl-64">
         <div className="container px-4 md:px-8 py-6 lg:py-8">
-          {children}
+          {isExpired && !isSettingsPage ? (
+            <Paywall />
+          ) : (
+            children
+          )}
         </div>
       </main>
     </div>
   );
 }
+

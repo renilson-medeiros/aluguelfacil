@@ -59,11 +59,21 @@ export async function createPixPayment(paymentData: {
     });
 
     // Busca o QR Code e o código "Copia e Cola" do PIX
-    const qrCodeData = await asaasRequest(`/payments/${payment.id}/pixQrCode`);
-
-    return {
-        ...payment,
-        pixCode: qrCodeData.payload,
-        qrCode: qrCodeData.encodedImage,
-    };
+    // Adicionado try-catch para não quebrar todo o fluxo se apenas o QR Code falhar
+    try {
+        const qrCodeData = await asaasRequest(`/payments/${payment.id}/pixQrCode`);
+        return {
+            ...payment,
+            pixCode: qrCodeData.payload,
+            qrCode: qrCodeData.encodedImage,
+        };
+    } catch (qrError) {
+        console.error('Erro ao buscar QR Code PIX:', qrError);
+        return {
+            ...payment,
+            pixCode: null,
+            qrCode: null,
+            qrCodeError: true
+        };
+    }
 }
