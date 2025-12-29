@@ -114,10 +114,17 @@ export default function Dashboard() {
 
     const loadRevenueData = async () => {
         try {
+            // Calcular data de 6 meses atrás
+            const sixMonthsAgo = new Date();
+            sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+            sixMonthsAgo.setDate(1); // Primeiro dia do mês
+            const dateStr = sixMonthsAgo.toISOString().split('T')[0]; // YYYY-MM-DD
+
             const { data, error } = await supabase
                 .from('comprovantes')
                 .select('valor, mes_referencia')
                 .eq('tipo', 'pagamento')
+                .gte('mes_referencia', dateStr)
                 .order('mes_referencia', { ascending: true });
 
             if (error) throw error;
@@ -136,9 +143,12 @@ export default function Dashboard() {
 
             data?.forEach((item: any) => {
                 const date = new Date(item.mes_referencia);
-                const key = `${monthNames[date.getMonth()]}/${date.getFullYear().toString().slice(-2)}`;
-                if (months[key] !== undefined) {
-                    months[key] += Number(item.valor);
+                // Garantir que a data está dentro do intervalo (redundância segura)
+                if (date >= sixMonthsAgo) {
+                    const key = `${monthNames[date.getMonth()]}/${date.getFullYear().toString().slice(-2)}`;
+                    if (months[key] !== undefined) {
+                        months[key] += Number(item.valor);
+                    }
                 }
             });
 
@@ -438,7 +448,7 @@ export default function Dashboard() {
                                                 {revenueData.map((entry, index) => (
                                                     <Cell
                                                         key={`cell-${index}`}
-                                                        fill={index === revenueData.length - 1 ? "#3b82f6" : "#94a3b8"}
+                                                        fill={index === revenueData.length - 1 ? "#eff6ff" : "#155DFC"}
                                                         className="transition-all duration-300 hover:fill-blue-500"
                                                     />
                                                 ))}
