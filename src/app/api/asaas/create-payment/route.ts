@@ -20,6 +20,10 @@ export async function POST() {
 
         if (profileError || !profile) throw new Error('Perfil não encontrado');
 
+        if (!profile.cpf) {
+            throw new Error('CPF não encontrado no seu perfil. Por favor, atualize seus dados nas configurações.');
+        }
+
         // 2. Busca ou cria cliente no Asaas
         const customer = await getOrCreateCustomer({
             name: profile.nome_completo,
