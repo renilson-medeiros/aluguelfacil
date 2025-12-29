@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -469,10 +470,13 @@ export default function PropertyDetailClient() {
                                                     setIsLightboxOpen(true);
                                                 }}
                                             >
-                                                <img
+                                                <Image
                                                     src={image}
                                                     alt={`Foto ${index + 1} do imóvel`}
-                                                    className="w-full min-h-full object-cover h-[350px] md:h-[600px] md:min-h-full md:object-cover hover:scale-105 transition-transform duration-500"
+                                                    fill
+                                                    priority={index === 0}
+                                                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 75vw, 60vw"
+                                                    className="object-cover hover:scale-105 transition-transform duration-500"
                                                 />
                                             </div>
                                         </CarouselItem>
@@ -532,10 +536,12 @@ export default function PropertyDetailClient() {
                                                     ? "border-blue-500 shadow-lg opacity-100"
                                                     : "border-transparent opacity-40 hover:opacity-100"
                                             )}>
-                                                <img
+                                                <Image
                                                     src={image}
                                                     alt={`Miniatura ${index + 1}`}
-                                                    className="w-[495px] h-[250px] object-cover"
+                                                    width={200}
+                                                    height={150}
+                                                    className="w-full h-full object-cover"
                                                 />
                                             </div>
                                         </CarouselItem>
@@ -576,10 +582,12 @@ export default function PropertyDetailClient() {
                                 {property.images.map((image, index) => (
                                     <CarouselItem key={index} className="h-full flex items-center justify-center p-0 pl-0">
                                         <div className="relative w-full h-full flex items-center justify-center">
-                                            <img
+                                            <Image
                                                 src={image}
                                                 alt={`Foto ${index + 1} ampliada`}
-                                                className="max-h-[85vh] max-w-[95vw] rounded-xl object-contain select-none shadow-2xl"
+                                                width={1920}
+                                                height={1080}
+                                                className="max-h-[85vh] max-w-[95vw] rounded-xl object-contain select-none shadow-2xl w-auto h-auto"
                                             />
                                         </div>
                                     </CarouselItem>
