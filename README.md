@@ -1,6 +1,6 @@
 # 🏠 Lugo - Sistema de Gestão de Imóveis
 
-> **Sistema completo e profissional para gestão de imóveis de aluguel, desenvolvido com as melhores práticas de desenvolvimento web moderno.**
+> **Sistema completo e profissional para gestão de imóveis de aluguel, projetado para simplificar a vida de proprietários com tecnologia de ponta.**
 
 [![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
@@ -11,257 +11,82 @@
 
 ## 🎯 Sobre o Projeto
 
-Lugo é uma aplicação full-stack que resolve problemas reais de proprietários de imóveis, oferecendo uma plataforma completa para gerenciar aluguéis, inquilinos e documentação de forma eficiente e profissional.
+O **Lugo** é uma solução SaaS (Software as a Service) focada na automação e organização da gestão imobiliária. Desenvolvido para proprietários que buscam uma alternativa moderna às planilhas, o sistema oferece gestão de contratos, controle de recebimentos e geração de documentos de forma intuitiva.
 
-### 🌟 Diferenciais Técnicos
+### 🌟 Diferenciais Técnicos para Recrutadores
 
-- **Arquitetura Escalável**: Estrutura modular seguindo princípios SOLID
-- **Performance Otimizada**: 75% mais rápido com React.memo, useMemo e lazy loading
-- **Segurança em Primeiro Lugar**: RLS no Supabase, validações robustas e sanitização de dados
-- **UX Excepcional**: Máscaras de input, feedback visual e navegação intuitiva
-- **Code Quality**: TypeScript strict mode, componentes reutilizáveis e código limpo
+- **Arquitetura Moderna**: Implementação robusta do Next.js 14 App Router com Server Components e Server Actions.
+- **Performance de Elite**: Otimização agressiva com Memoization, Lazy Loading e Image Optimization, garantindo um Lighthouse score superior.
+- **Segurança Avançada**: Implementação de Row Level Security (RLS) no Supabase, garantindo que cada usuário acesse apenas seus próprios dados.
+- **UX Premium**: Interface rica com shadcn/ui, animações sutis e feedback imediato ao usuário (Toasts, Loading States).
+- **Código Limpo (Clean Code)**: Segregação de responsabilidades, TypeScript Strict Mode e componentes altamente reutilizáveis.
 
 ---
 
 ## 🚀 Funcionalidades Principais
 
-### 📋 Gestão Completa
-- ✅ **CRUD de Imóveis** com upload múltiplo de fotos (Supabase Storage)
-- ✅ **Gestão de Inquilinos** com controle de contratos e status
-- ✅ **Geração de Comprovantes** (pagamento e residência) com preview em tempo real
-- ✅ **Dashboard Analítico** com métricas e visualizações
+### 📋 Gestão de Ativos & Pessoas
+- **Gestão de Imóveis**: Dashboard completo com status em tempo real (Disponível, Alugado, Manutenção).
+- **Controle de Inquilinos**: Histórico completo, gestão de datas críticas e dados de contato.
+- **Upload de Fotos & Documentos**: Integração com Supabase Storage para armazenamento seguro de imagens dos imóveis e contratos.
 
-### 🔐 Autenticação & Segurança
-- ✅ Sistema completo de autenticação (Supabase Auth)
-- ✅ Validação de senha forte com feedback visual
-- ✅ Row Level Security (RLS) para proteção de dados
-- ✅ Middleware de proteção de rotas
-- ✅ Validação de CPF e sanitização de inputs
-
-### 🎨 UX/UI de Alto Nível
-- ✅ Design responsivo e moderno (Mobile First)
-- ✅ Máscaras automáticas (CPF, telefone, CEP, valores)
-- ✅ DatePicker customizado com fechamento automático
-- ✅ Selects estilizados (shadcn/ui)
-- ✅ Loading states e empty states
-- ✅ Navegação inteligente com `router.back()`
+### 💰 Financeiro & Documentação
+- **Geração de Comprovantes**: Emissão instantânea de recibos de aluguel e comprovantes de residência.
+- **Monitoramento de Receita**: Visualização clara do fluxo financeiro mensal.
+- **Relatórios**: Exportação de dados essenciais para gestão contábil.
 
 ---
 
 ## 🛠️ Stack Tecnológica
 
-### Frontend
-- **Framework**: Next.js 14 (App Router)
-- **Linguagem**: TypeScript 5.0
-- **UI Library**: shadcn/ui + Radix UI
-- **Estilização**: Tailwind CSS
-- **Ícones**: Lucide React
+### Frontend & UI
+- **Framework**: [Next.js 14](https://nextjs.org/) (App Router)
+- **Linguagem**: [TypeScript](https://www.typescriptlang.org/)
+- **Estilização**: [Tailwind CSS](https://tailwindcss.com/)
+- **Componentes**: [shadcn/ui](https://ui.shadcn.com/) + [Radix UI](https://www.radix-ui.com/)
 - **Formulários**: React Hook Form + Zod
-- **Notificações**: Sonner (toast)
 
-### Backend & Database
-- **BaaS**: Supabase (PostgreSQL)
-- **Autenticação**: Supabase Auth
+### Backend & Infra
+- **Banco de Dados**: [PostgreSQL](https://www.postgresql.org/) (via Supabase)
+- **Autenticação**: Supabase Auth (OAuth & Email/Password)
 - **Storage**: Supabase Storage
-- **Real-time**: Supabase Realtime (preparado)
-
-### Performance & Otimização
-- **Image Optimization**: Next.js Image (WebP automático)
-- **Code Splitting**: Dynamic imports
-- **Memoization**: React.memo, useMemo, useCallback
-- **Query Optimization**: Queries seletivas com limit
+- **Infra**: Vercel
 
 ---
 
-## 📊 Métricas de Performance
-
-| Métrica | Resultado |
-|---------|-----------|
-| **Lighthouse Performance** | 90+ |
-| **Redução de Re-renders** | 90% |
-| **Otimização de Imagens** | 90% menor |
-| **Redução de Dados** | 80% menos tráfego |
-| **Tempo de Carregamento** | < 1s |
-
----
-
-## 🏗️ Arquitetura do Projeto
-
-```
-lugo/
-├── src/
-│   ├── app/                    # App Router (Next.js 14)
-│   │   ├── dashboard/          # Páginas protegidas
-│   │   ├── login/              # Autenticação
-│   │   └── registro/           # Cadastro
-│   ├── components/
-│   │   ├── layout/             # Header, Footer
-│   │   └── ui/                 # shadcn/ui components
-│   ├── contexts/
-│   │   └── AuthContext.tsx    # Gerenciamento de autenticação
-│   ├── lib/
-│   │   ├── supabase/           # Clientes Supabase (SSR)
-│   │   │   ├── client.ts       # Browser client
-│   │   │   ├── server.ts       # Server client
-│   │   │   └── middleware.ts   # Middleware client
-│   │   └── validators.ts       # Validações centralizadas
-│   └── modules/                # Módulos de negócio
-│       └── dashboard/          # Componentes do dashboard
-├── docs/                       # Documentação técnica
-└── public/                     # Assets estáticos
-```
-
----
-
-## 💡 Destaques de Implementação
-
-### 1. Otimização de Performance
-```typescript
-// React.memo para evitar re-renders desnecessários
-const PropertyCard = memo(({ property, onShare, onDelete }) => {
-  // Componente otimizado
-});
-
-// useMemo para cálculos pesados
-const filteredProperties = useMemo(() => {
-  return properties.filter(p => p.title.includes(searchQuery));
-}, [properties, searchQuery]);
-```
-
-### 2. Validação Robusta
-```typescript
-// Validador de senha forte
-const validarSenha = (senha: string) => {
-  const requisitos = {
-    tamanho: senha.length >= 8,
-    maiuscula: /[A-Z]/.test(senha),
-    minuscula: /[a-z]/.test(senha),
-    numero: /[0-9]/.test(senha)
-  };
-  // Feedback visual em tempo real
-};
-```
-
-### 3. Queries Otimizadas
-```typescript
-// Busca apenas campos necessários + limit
-const { data } = await supabase
-  .from('imoveis')
-  .select('id, titulo, endereco_rua, valor_aluguel, fotos')
-  .order('created_at', { ascending: false })
-  .limit(50);
-```
-
----
-
-## 🔒 Segurança Implementada
-
-- ✅ **Row Level Security (RLS)** no Supabase
-- ✅ **Validação de CPF** com algoritmo verificador
-- ✅ **Sanitização de inputs** para prevenir XSS
-- ✅ **Validação de força de senha** (8+ chars, maiúscula, minúscula, número)
-- ✅ **Proteção de rotas** via middleware
-- ✅ **Validação de tipos** com TypeScript strict mode
-
----
-
-## 📱 Responsividade
-
-- ✅ Mobile First Design
-- ✅ Breakpoints otimizados (sm, md, lg, xl)
-- ✅ Navegação adaptativa
-- ✅ Imagens responsivas (Next.js Image)
-- ✅ Componentes flexíveis
-
----
-
-## 🚀 Como Executar
-
-### Pré-requisitos
-- Node.js 18+
-- Conta no Supabase
-
-### Instalação
+## 🏗️ Estrutura do Projeto
 
 ```bash
-# Clone o repositório
-git clone https://github.com/seu-usuario/lugo.git
-cd lugo
-
-# Instale as dependências
-npm install
-
-# Configure as variáveis de ambiente
-cp .env.example .env.local
-# Adicione suas credenciais do Supabase
-
-# Execute o projeto
-npm run dev
+/src
+  /app          # Rotas e Páginas (Next.js 14)
+  /components   # Componentes Shared & UI (Atomic Design)
+  /contexts     # Contextos React (Auth, etc)
+  /lib          # Configurações de API e Utilitários (Supabase client/middleware)
+  /modules      # Lógica de Negócio por domínio (Dashboard, Checkout)
+/supabase
+  /migrations   # Scripts de estrutura de banco de dados e RLS
+/docs           # Documentação técnica e guias de uso
 ```
 
-Acesse: `http://localhost:3000`
+---
+
+## 🔒 Segurança & Boas Práticas (Showcase Técnico)
+
+Este projeto foi construído focando em padrões de **Enterprise SaaS**, demonstrando domínio sobre:
+
+- **Isolamento de Dados**: Uso de Row Level Security (RLS) no PostgreSQL para garantir multi-tenancy seguro.
+- **Arquitetura de Software**: Separação clara entre lógica de API, componentes de UI e regras de negócio.
+- **Validação de Dados**: Esquemas robustos com Zod para garantir integridade em toda a stack.
+- **Performance**: Monitoramento constante de Web Vitals e otimização de renderização.
 
 ---
 
-## 📚 Aprendizados e Desafios
+## 👨‍💻 Desenvolvedor
 
-### Desafios Superados
-1. **SSR com Supabase**: Implementação de clientes separados para browser, server e middleware
-2. **Performance**: Otimização de re-renders em listas grandes
-3. **UX**: Máscaras de input que funcionam tanto na digitação quanto ao carregar dados
-4. **Tipagem**: TypeScript strict com tipos complexos do Supabase
+**Renilson Medeiros** - Especialista em Desenvolvimento Fullstack
 
-### Boas Práticas Aplicadas
-- ✅ Componentes pequenos e reutilizáveis
-- ✅ Separação de responsabilidades
-- ✅ Validações centralizadas
-- ✅ Tratamento de erros consistente
-- ✅ Código autodocumentado
-- ✅ Commits semânticos
-
----
-
-## 🎓 Competências Demonstradas
-
-### Frontend
-- Next.js 14 (App Router, SSR, Image Optimization)
-- TypeScript avançado (Generics, Utility Types)
-- React Hooks (useState, useEffect, useMemo, useCallback, memo)
-- Gerenciamento de estado (Context API)
-- Performance optimization
-
-### Backend & Database
-- Supabase (PostgreSQL, Auth, Storage, RLS)
-- SQL queries otimizadas
-- Modelagem de dados relacional
-- Autenticação e autorização
-
-### DevOps & Tools
-- Git (versionamento semântico)
-- npm (gerenciamento de dependências)
-- ESLint + Prettier (code quality)
-
----
-
-## 📈 Próximos Passos
-
-- [ ] Testes automatizados (Jest + React Testing Library)
-- [ ] CI/CD com GitHub Actions
-- [ ] Rate limiting avançado
-- [ ] Notificações por email
-- [ ] Geração de PDF de comprovantes
-- [ ] Dashboard com gráficos (Recharts)
-- [ ] PWA (Progressive Web App)
-
----
-
-## 👨‍💻 Autor
-
-**Renilson Medeiros**
-
-- LinkedIn: [seu-linkedin](https://linkedin.com/in/seu-perfil)
-- GitHub: [@seu-usuario](https://github.com/seu-usuario)
-- Email: seu-email@exemplo.com
+- **LinkedIn**: [Renilson Medeiros](https://linkedin.com/in/renilson-medeiros)
+- **GitHub**: [@renilson-medeiros](https://github.com/renilson-medeiros)
 
 ---
 
@@ -271,16 +96,6 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 
 ---
 
-## 🙏 Agradecimentos
-
-Desenvolvido com ❤️ e muito ☕ como projeto de portfólio demonstrando habilidades em desenvolvimento full-stack moderno.
-
----
-
 <div align="center">
-
-### ⭐ Se este projeto foi útil, considere dar uma estrela!
-
-**Feito com Next.js, TypeScript e Supabase**
-
+  <p>Projeto desenvolvido como demonstração de competência técnica em arquitetura Next.js e ecossistema Supabase.</p>
 </div>
