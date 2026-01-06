@@ -109,8 +109,7 @@ export default function TenantsList({ initialData = [], initialLoading = true }:
 
       if (fetchError) throw fetchError;
 
-      // Transformar dados para corresponder à interface
-      const transformedData: Tenant[] = (data || []).map(item => ({
+      const transformedData = (data || []).map(item => ({
         ...item,
         imoveis: Array.isArray(item.imoveis)
           ? (item.imoveis.length > 0 ? item.imoveis[0] : null)
@@ -131,13 +130,11 @@ export default function TenantsList({ initialData = [], initialLoading = true }:
     try {
       setIsLoading(true);
 
-      // 1. Buscar todos os comprovantes do inquilino para deletar PDFs
       const { data: comprovantes } = await supabase
         .from('comprovantes')
         .select('pdf_url')
         .eq('inquilino_id', tenant.id);
 
-      // 2. Deletar PDFs do Storage
       if (comprovantes && comprovantes.length > 0) {
         const pdfPaths = comprovantes
           .filter(c => c.pdf_url)
@@ -155,13 +152,8 @@ export default function TenantsList({ initialData = [], initialLoading = true }:
         }
       }
 
-      // 3. Deletar comprovantes do banco
-      await supabase
-        .from('comprovantes')
-        .delete()
-        .eq('inquilino_id', tenant.id);
+      await supabase.from('comprovantes').delete().eq('inquilino_id', tenant.id);
 
-      // 4. Inativar o inquilino
       const { error: tenantError } = await supabase
         .from('inquilinos')
         .update({
@@ -172,7 +164,6 @@ export default function TenantsList({ initialData = [], initialLoading = true }:
 
       if (tenantError) throw tenantError;
 
-      // 5. Voltar o imóvel para disponível
       const { error: propertyError } = await supabase
         .from('imoveis')
         .update({ status: 'disponivel' })
@@ -180,10 +171,7 @@ export default function TenantsList({ initialData = [], initialLoading = true }:
 
       if (propertyError) throw propertyError;
 
-      toast.success('Locação finalizada!', {
-        description: `Contrato de ${tenant.nome_completo} encerrado. PDFs removidos.`
-      });
-
+      toast.success('Locação finalizada!');
       await loadTenants();
     } catch (error) {
       console.error('Erro ao finalizar locação:', error);
@@ -191,7 +179,7 @@ export default function TenantsList({ initialData = [], initialLoading = true }:
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [loadTenants]);
 
   const filteredTenants = useMemo(() => {
     return tenants.filter(
@@ -208,7 +196,7 @@ export default function TenantsList({ initialData = [], initialLoading = true }:
     );
   }, [tenants, searchQuery, statusFilter, propertyFilter]);
 
-  const properties = useMemo(() => {
+  const propertiesOptions = useMemo(() => {
     const unique = new Set(tenants.map(t => t.imoveis?.titulo).filter(Boolean));
     return Array.from(unique).sort();
   }, [tenants]);
@@ -244,7 +232,6 @@ export default function TenantsList({ initialData = [], initialLoading = true }:
   return (
     <>
       <div className="space-y-6">
-        {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="font-display text-2xl font-bold sm:text-3xl">Inquilinos</h1>
@@ -257,17 +244,15 @@ export default function TenantsList({ initialData = [], initialLoading = true }:
           </div>
         </div>
 
-        {/* Search and Filters */}
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               type="search"
               placeholder="Buscar inquilino..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
-              aria-label="Buscar inquilino"
             />
           </div>
 
@@ -295,7 +280,7 @@ export default function TenantsList({ initialData = [], initialLoading = true }:
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="todos">Imóveis</SelectItem>
-                {properties.map(title => (
+                {propertiesOptions.map(title => (
                   <SelectItem key={title} value={title || ''}>
                     {title}
                   </SelectItem>
@@ -312,7 +297,7 @@ export default function TenantsList({ initialData = [], initialLoading = true }:
                   setPropertyFilter("todos");
                   setSearchQuery("");
                 }}
-                className="text-muted-foreground hover:text-red-500 w-full lg:w-auto col-span-1 sm:col-span-2 lg:col-span-1"
+                className="text-muted-foreground hover:text-red-500 w-full lg:w-auto"
               >
                 <XCircle className="h-4 w-4 mr-1" />
                 Limpar
@@ -321,114 +306,29 @@ export default function TenantsList({ initialData = [], initialLoading = true }:
           </div>
         </div>
 
-        {/* Tenants List */}
         {filteredTenants.length > 0 ? (
           <div className="grid gap-4">
             {filteredTenants.map((tenant, index) => (
-              <Card
+              <TenantCard
                 key={tenant.id}
-                className="transition-all duration-300 hover:shadow-md animate-fade-in"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <CardContent className="p-6">
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="flex items-start gap-4">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent">
-                        <Users className="h-6 w-6 text-blue-600" aria-hidden="true" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-display font-semibold">{tenant.nome_completo}</h3>
-                          <Badge
-                            variant="outline"
-                            className={`text-xs font-normal ${tenant.status === "ativo"
-                              ? "bg-green-50 text-green-500 border-green-200"
-                              : "bg-red-50 text-red-500 border-red-200"
-                              }`}
-                          >
-                            {tenant.status === "ativo" ? "Ativo" : "Inativo"}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground">CPF: {tenant.cpf}</p>
-
-                        <div className="mt-3 flex flex-wrap gap-4 text-sm">
-                          <div className="flex items-center gap-1.5 text-muted-foreground">
-                            <Building2 className="h-4 w-4" aria-hidden="true" />
-                            <span>{tenant.imoveis?.titulo || 'Imóvel não encontrado'}</span>
-                          </div>
-                          <div className="flex items-center gap-1.5 text-muted-foreground">
-                            <Calendar className="h-4 w-4" aria-hidden="true" />
-                            <span>Dia {tenant.dia_vencimento}</span>
-                          </div>
-                          <div className="flex items-center gap-1.5 text-muted-foreground">
-                            <Phone className="h-4 w-4" aria-hidden="true" />
-                            <span>{tenant.telefone}</span>
-                          </div>
-                        </div>
-
-                        <p className="mt-2 text-xs text-muted-foreground">
-                          Contrato: {new Date(tenant.data_inicio).toLocaleDateString('pt-BR')}
-                          {tenant.data_fim && ` até ${new Date(tenant.data_fim).toLocaleDateString('pt-BR')}`}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <Link href={`/dashboard/comprovantes/novo?inquilino=${tenant.id}`}>
-                        <Button variant="outline" size="sm" className="gap-1.5 border-blue-600 hover:border-blue-500 bg-blue-600 hover:bg-blue-500 text-muted hover:text-muted">
-                          <Receipt className="h-4 w-4" aria-hidden="true" />
-                          Gerar comprovante
-                        </Button>
-                      </Link>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Mais opções">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-popover">
-                          <DropdownMenuItem asChild>
-                            <Link href={`/dashboard/inquilinos/${tenant.id}`} className="cursor-pointer">
-                              <Eye className="mr-2 h-4 w-4 text-blue-600" />
-                              Ver detalhes
-                            </Link>
-                          </DropdownMenuItem>
-                          {tenant.status === 'ativo' && (
-                            <DropdownMenuItem
-                              className="cursor-pointer text-orange-600 focus:text-orange-600"
-                              onClick={() => handleTerminateLease(tenant)}
-                            >
-                              <UserMinus className="mr-2 h-4 w-4" />
-                              Finalizar Locação
-                            </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                tenant={tenant}
+                index={index}
+                onTerminate={handleTerminateLease}
+              />
             ))}
           </div>
         ) : (
           <Card className="py-12">
             <CardContent className="flex flex-col items-center justify-center text-center">
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-accent">
-                <Users className="h-8 w-8 text-muted-foreground" aria-hidden="true" />
+                <Users className="h-8 w-8 text-muted-foreground" />
               </div>
               <h3 className="mt-4 font-display text-lg font-semibold">Nenhum inquilino encontrado</h3>
               <p className="mt-1 text-sm text-muted-foreground">
                 {searchQuery
                   ? "Tente buscar com outros termos"
-                  : "Você ainda não tem inquilinos cadastrados. Cadastre um inquilino em um dos seus imóveis."}
+                  : "Você ainda não tem inquilinos cadastrados."}
               </p>
-              {!searchQuery && (
-                <Link href="/dashboard/imoveis" className="mt-4">
-                  <Button variant="default" className="bg-blue-600 hover:bg-blue-500 text-white">
-                    Ver imóveis
-                  </Button>
-                </Link>
-              )}
             </CardContent>
           </Card>
         )}
@@ -436,3 +336,91 @@ export default function TenantsList({ initialData = [], initialLoading = true }:
     </>
   );
 }
+
+interface TenantCardProps {
+  tenant: Tenant;
+  index: number;
+  onTerminate: (tenant: Tenant) => void;
+}
+
+const TenantCard = memo(({ tenant, index, onTerminate }: TenantCardProps) => {
+  return (
+    <Card
+      className="transition-all duration-300 hover:shadow-md animate-fade-in"
+      style={{ animationDelay: `${index * 100}ms` }}
+    >
+      <CardContent className="p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-start gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent">
+              <Users className="h-6 w-6 text-blue-600" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-display font-semibold">{tenant.nome_completo}</h3>
+                <Badge
+                  variant="outline"
+                  className={`text-xs font-normal ${tenant.status === "ativo"
+                    ? "bg-green-50 text-green-500 border-green-200"
+                    : "bg-red-50 text-red-500 border-red-200"
+                    }`}
+                >
+                  {tenant.status === "ativo" ? "Ativo" : "Inativo"}
+                </Badge>
+              </div>
+              <p className="text-sm text-muted-foreground">CPF: {tenant.cpf}</p>
+
+              <div className="mt-3 flex flex-wrap gap-4 text-sm">
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <Building2 className="h-4 w-4" />
+                  <span>{tenant.imoveis?.titulo || 'Imóvel não encontrado'}</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <Calendar className="h-4 w-4" />
+                  <span>Dia {tenant.dia_vencimento}</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  <Phone className="h-4 w-4" />
+                  <span>{tenant.telefone}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 text-muted-foreground ">
+            <Link href={`/dashboard/comprovantes/novo?inquilino=${tenant.id}`}>
+              <Button variant="outline" size="sm" className="gap-1.5 border-blue-600 hover:border-blue-500 bg-blue-600 hover:bg-blue-500 text-white">
+                <Receipt className="h-4 w-4" />
+                Gerar comprovante
+              </Button>
+            </Link>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-popover">
+                <DropdownMenuItem asChild>
+                  <Link href={`/dashboard/inquilinos/${tenant.id}`} className="cursor-pointer">
+                    <Eye className="mr-2 h-4 w-4 text-blue-600" />
+                    Ver detalhes
+                  </Link>
+                </DropdownMenuItem>
+                {tenant.status === 'ativo' && (
+                  <DropdownMenuItem
+                    className="cursor-pointer text-orange-600 focus:text-orange-600"
+                    onClick={() => onTerminate(tenant)}
+                  >
+                    <UserMinus className="mr-2 h-4 w-4" />
+                    Finalizar Locação
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+});

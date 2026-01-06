@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import {
     BarChart,
     Bar,
@@ -20,7 +21,7 @@ interface RevenueChartProps {
     data: RevenueData[];
 }
 
-export default function RevenueChart({ data }: RevenueChartProps) {
+function RevenueChartComponent({ data }: RevenueChartProps) {
     if (!data || data.length === 0) {
         return (
             <div className="flex h-[300px] items-center justify-center text-muted-foreground">
@@ -30,21 +31,22 @@ export default function RevenueChart({ data }: RevenueChartProps) {
     }
 
     return (
-        <div className="h-[300px] w-full mt-4">
+        <div className="h-[300px] md:h-[400px] w-full mt-4">
             <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={data}>
+                <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
                     <XAxis
                         dataKey="month"
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                        dy={10}
+                        tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
+                        dy={11}
                     />
                     <YAxis
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                        width={50}
+                        tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
                         tickFormatter={(value) => `R$ ${value}`}
                     />
                     <Tooltip
@@ -74,3 +76,5 @@ export default function RevenueChart({ data }: RevenueChartProps) {
         </div>
     );
 }
+
+export default memo(RevenueChartComponent);

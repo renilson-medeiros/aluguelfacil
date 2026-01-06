@@ -1,32 +1,81 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import DashboardClient from "./DashboardClient";
+import { Suspense } from "react";
+import DashboardClientShell from "./DashboardClientShell";
+import { 
+    StatsSection, 
+    RevenueSection, 
+    AlertsSection, 
+    PropertiesPreviewSection,
+    OccupancyRateSection
+} from "@/components/dashboard/DashboardSections";
+import { 
+    StatsSkeleton, 
+    RevenueSkeleton, 
+    AlertsSkeleton, 
+    PropertiesSkeleton,
+    OccupancyRateSkeleton
+} from "@/components/dashboard/DashboardSkeletons";
 
 export default async function DashboardPage() {
     const supabase = await createClient();
 
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { user } } = await supabase.auth.getUser();
 
-    if (!session) {
+    if (!user) {
         redirect("/login");
     }
 
-    // Carregar dados iniciais em paralelo no servidor
-    const [statsRes, revenueRes, alertsRes, propertiesRes] = await Promise.all([
-        fetchDashboardStats(supabase),
-        fetchRevenueData(supabase),
-        fetchAlerts(supabase),
-        fetchInitialProperties(supabase)
-    ]);
-
     return (
-        <DashboardClient
-            initialStats={statsRes.stats}
-            initialProperties={propertiesRes.properties}
-            totalPropertiesCount={statsRes.totalProperties}
-            initialRevenue={revenueRes}
-            initialAlerts={alertsRes}
-        />
+        <div className="space-y-8">
+            <DashboardClientShell />
+
+            <Suspense fallback={<StatsSkeleton />}>
+                <StatsSection />
+            </Suspense>
+
+            <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
+                <Suspense fallback={<RevenueSkeleton />}>
+                    <RevenueSection />
+                </Suspense>
+
+                <div className="space-y-6">
+                    <CardDica />
+                    <Suspense fallback={<OccupancyRateSkeleton />}>
+                        <OccupancyRateSection />
+                    </Suspense>
+                    <Suspense fallback={<AlertsSkeleton />}>
+                        <AlertsSection />
+                    </Suspense>
+                </div>
+            </div>
+
+            <Suspense fallback={<PropertiesSkeleton />}>
+                <PropertiesPreviewSection />
+            </Suspense>
+        </div>
+    );
+}
+
+// Pequeno componente local para a dica que é estática
+import { Card, CardContent } from "@/components/ui/card";
+import { TrendingUp } from "lucide-react";
+
+function CardDica() {
+    return (
+        <Card className="border-blue-600 bg-blue-600">
+            <CardContent className="flex items-center gap-4 p-6">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500">
+                    <TrendingUp className="h-5 w-5 text-white" aria-hidden="true" />
+                </div>
+                <div className="flex-1">
+                    <p className="font-medium text-white">Dica: Compartilhe</p>
+                    <p className="text-sm text-white/80">
+                        Gere links únicos para cada imóvel e compartilhe.
+                    </p>
+                </div>
+            </CardContent>
+        </Card>
     );
 }
 
