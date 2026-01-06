@@ -63,7 +63,7 @@ export default function Landing() {
 
             <main className="flex-1 ">
                 {/* Hero Section */}
-                <section className="relative flex flex-col items-center justify-center overflow-hidden bg-linear-to-b from-accent/50 to-blue-50/25 py-20 lg:py-32 md:min-h-screen">
+                <section className="relative flex flex-col items-center justify-center overflow-hidden bg-linear-to-b from-accent/50 to-blue-50/25 py-20 lg:py-32 min-h-[70vh] md:min-h-screen">
                     <div className="container px-6">
                         <div className="mx-auto max-w-3xl text-center">
                             <h1 className="font-display text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
