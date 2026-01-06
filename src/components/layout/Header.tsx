@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, Home, X, Building2, LayoutDashboard } from "lucide-react";
@@ -12,10 +12,21 @@ import { Logo } from "@/components/ui/Logo";
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
   const { user, loading, signOut } = useAuth();
   const isAuthPage = pathname === "/login" || pathname === "/registro";
   const isPropertyPublicPage = pathname.startsWith("/imovel/");
   const showNav = user || (!isPropertyPublicPage && !isAuthPage);
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      setIsOpen(false);
+      router.push("/");
+    } catch (error) {
+      console.error("Erro ao sair:", error);
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -43,7 +54,7 @@ export function Header() {
                   <Button
                     variant="ghost"
                     className="font-medium text-red-500 hover:text-red-600 hover:bg-red-50"
-                    onClick={() => signOut()}
+                    onClick={handleSignOut}
                   >
                     Sair
                   </Button>
@@ -93,10 +104,7 @@ export function Header() {
                           <Button
                             variant="ghost"
                             className="w-full justify-start font-medium text-red-500 hover:text-red-600 hover:bg-red-50"
-                            onClick={() => {
-                              signOut();
-                              setIsOpen(false);
-                            }}
+                            onClick={handleSignOut}
                           >
                             Sair
                           </Button>
