@@ -497,7 +497,7 @@ export default function ReceiptForm() {
             {/* Inquilino */}
             <Card className="animate-fade-in">
               <CardHeader>
-                <div className="flex items-end gap-2">
+                <div className="flex items-center gap-2">
                   <User className="h-5 w-5 text-blue-600" aria-hidden="true" />
                   <CardTitle>Inquilino</CardTitle>
                 </div>
@@ -553,7 +553,7 @@ export default function ReceiptForm() {
             {/* Referência */}
             <Card className="animate-fade-in" style={{ animationDelay: "100ms" }}>
               <CardHeader>
-                <div className="flex items-end gap-2">
+                <div className="flex items-center gap-2">
                   <Calendar className="h-5 w-5 text-blue-600" aria-hidden="true" />
                   <CardTitle>Referência</CardTitle>
                 </div>
@@ -600,7 +600,7 @@ export default function ReceiptForm() {
             {/* Valores */}
             <Card className="animate-fade-in" style={{ animationDelay: "200ms" }}>
               <CardHeader>
-                <div className="flex items-end gap-2">
+                <div className="flex items-center gap-2">
                   <DollarSign className="h-5 w-5 text-blue-600" aria-hidden="true" />
                   <CardTitle>Valores</CardTitle>
                 </div>

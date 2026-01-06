@@ -35,6 +35,16 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
+import imageCompression from 'browser-image-compression';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
+import { createPropertyAction, updatePropertyAction, generateSignedUploadUrlAction } from "@/app/dashboard/imoveis/actions";
 
 interface PropertyFormData {
   // Endereço
@@ -122,6 +132,8 @@ export default function PropertyForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingCep, setIsLoadingCep] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'optimizing' | 'preparing' | 'storing' | 'finalizing' | 'error'>('idle');
+  const [progressValue, setProgressValue] = useState(0);
 
   // Carregar dados se estiver editando ou verificar trava de trial se for novo
   useEffect(() => {
@@ -153,7 +165,7 @@ export default function PropertyForm() {
         }
       }
     } catch (error) {
-      console.error('Erro ao verificar limite de trial:', error);
+      // Falha silenciosa ou log de erro real
     }
   };
 
@@ -299,27 +311,57 @@ export default function PropertyForm() {
     }
 
     setIsSubmitting(true);
-
-    // 1. Criar um Timer de Segurança (Timeout de 20 segundos)
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('TIMEOUT_EXCEEDED')), 20000)
-    );
+    setUploadStatus('optimizing');
+    setProgressValue(10);
+    let hasError = false;
 
     try {
-      // 2. Validação proativa de sessão antes de começar
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !session) {
+      const currentUser = user;
+      if (!currentUser) {
         throw new Error('SESSION_EXPIRED');
       }
 
-      // Função principal de salvamento envolta em Promise para o race
       const saveAction = async () => {
         let propertyId = id;
 
-        // Se não for edição, precisamos criar o registro primeiro para ter o ID
+        // 2. Otimização de Imagens
+        const optimizedPhotos: File[] = [];
+        if (photos.length > 0) {
+          for (let i = 0; i < photos.length; i++) {
+            setUploadStatus('optimizing');
+            setProgressValue(10 + Math.round((i / photos.length) * 30));
+
+            try {
+              const options = {
+                maxSizeMB: 0.8,
+                maxWidthOrHeight: 1200,
+                useWebWorker: true,
+              };
+              const compressedFile = await imageCompression(photos[i], options);
+              optimizedPhotos.push(new File([compressedFile], photos[i].name, { type: photos[i].type }));
+            } catch (err) {
+              optimizedPhotos.push(photos[i]);
+            }
+          }
+        }
+
+        setUploadStatus('preparing');
+        setProgressValue(45);
+
         if (!isEditing) {
+          let rentVal = parseCurrencyToNumber(formData.rentValue);
+          let condoVal = formData.condoValue ? parseCurrencyToNumber(formData.condoValue) : null;
+          let iptuVal = formData.iptuValue ? parseCurrencyToNumber(formData.iptuValue) : null;
+          let serviceVal = formData.serviceValue ? parseCurrencyToNumber(formData.serviceValue) : null;
+
+          // Sanitizar NaNs
+          if (isNaN(rentVal)) rentVal = 0;
+          if (condoVal !== null && isNaN(condoVal)) condoVal = 0;
+          if (iptuVal !== null && isNaN(iptuVal)) iptuVal = 0;
+          if (serviceVal !== null && isNaN(serviceVal)) serviceVal = 0;
+
           const initialPropertyData = {
-            proprietario_id: user.id,
+            proprietario_id: currentUser.id,
             endereco_cep: formData.cep,
             endereco_rua: formData.street,
             endereco_numero: formData.number,
@@ -328,66 +370,81 @@ export default function PropertyForm() {
             endereco_cidade: formData.city,
             endereco_estado: formData.state,
             titulo: formData.title,
-            tipo: formData.type as 'casa' | 'apartamento' | 'comercial' | 'terreno' | 'kitnet' | 'studio' | 'cobertura',
-            comodos: formData.rooms,
+            tipo: formData.type as any,
+            comodos: formData.rooms || [],
             max_pessoas: formData.maxPeople ? parseInt(formData.maxPeople) : null,
             aceita_pets: formData.acceptsPets,
             tem_garagem: formData.hasGarage,
             aceita_criancas: formData.acceptsChildren,
-            valor_aluguel: parseCurrencyToNumber(formData.rentValue),
-            valor_condominio: formData.condoValue ? parseCurrencyToNumber(formData.condoValue) : null,
-            valor_iptu: formData.iptuValue ? parseCurrencyToNumber(formData.iptuValue) : null,
-            valor_taxa_servico: formData.serviceValue ? parseCurrencyToNumber(formData.serviceValue) : null,
+            valor_aluguel: rentVal,
+            valor_condominio: condoVal,
+            valor_iptu: iptuVal,
+            valor_taxa_servico: serviceVal,
             inclui_agua: formData.includesWater,
             inclui_luz: formData.includesElectricity,
             inclui_internet: formData.includesInternet,
             inclui_gas: formData.includesGas,
             descricao: formData.observations || null,
-            status: 'disponivel' as 'disponivel' | 'alugado' | 'manutencao',
-            fotos: [], // Temporário
+            status: 'disponivel',
+            fotos: [],
           };
 
-          const { data: newProperty, error: insertError } = await supabase
-            .from('imoveis')
-            .insert([initialPropertyData])
-            .select()
-            .single();
+          const result = await createPropertyAction(initialPropertyData);
 
-          if (insertError) throw insertError;
-          propertyId = newProperty.id;
+          if (!result.success) {
+            throw new Error(result.error);
+          }
+
+          propertyId = result.data.id;
         }
 
-        // Upload de novas fotos
+        setUploadStatus('storing');
+        setProgressValue(60);
+
         const uploadedPhotosUrls: string[] = [];
-
-        for (const photo of photos) {
+        for (let i = 0; i < optimizedPhotos.length; i++) {
+          const photo = optimizedPhotos[i];
           const fileExt = photo.name.split('.').pop();
-          const fileName = `${user.id}/${propertyId}/photos/${Date.now()}-${Math.random()}.${fileExt}`;
+          const fileName = `${currentUser.id}/${propertyId}/photos/${Date.now()}-${Math.random()}.${fileExt}`;
 
-          const { error: uploadError } = await supabase.storage
-            .from('imoveis-fotos')
-            .upload(fileName, photo);
+          try {
+            const signedResult = await generateSignedUploadUrlAction(fileName);
+            
+            if (!signedResult.success || !signedResult.signedUrl) {
+              throw new Error(signedResult.error);
+            }
 
-          if (uploadError) throw uploadError;
+            const uploadResponse = await fetch(signedResult.signedUrl, {
+              method: 'PUT',
+              body: photo,
+              headers: {
+                'Content-Type': photo.type,
+              },
+            });
 
-          const { data: { publicUrl } } = supabase.storage
-            .from('imoveis-fotos')
-            .getPublicUrl(fileName);
+            if (!uploadResponse.ok) {
+              throw new Error(`Erro no upload da foto ${i + 1}`);
+            }
 
-          uploadedPhotosUrls.push(publicUrl);
+            const { data: { publicUrl } } = supabase.storage
+              .from('imoveis-fotos')
+              .getPublicUrl(fileName);
+
+            uploadedPhotosUrls.push(publicUrl);
+            setProgressValue(60 + Math.round(((i + 1) / optimizedPhotos.length) * 30));
+          } catch (err: any) {
+            throw err;
+          }
         }
 
-        // Combinar fotos existentes com as novas
+        setUploadStatus('finalizing');
+        setProgressValue(95);
+
         const allPhotos = [...existingPhotos, ...uploadedPhotosUrls];
-
-        // Validar quantidade de fotos
-        if (allPhotos.length < 3) {
-          toast.error('Mínimo de 3 fotos necessárias');
-          throw new Error('MIN_PHOTOS_REQUIRED');
-        }
+        if (allPhotos.length < 3) throw new Error('MIN_PHOTOS_REQUIRED');
 
         const finalPropertyData = {
-          proprietario_id: user.id,
+          proprietario_id: currentUser.id,
           endereco_cep: formData.cep,
           endereco_rua: formData.street,
           endereco_numero: formData.number,
@@ -396,7 +453,7 @@ export default function PropertyForm() {
           endereco_cidade: formData.city,
           endereco_estado: formData.state,
           titulo: formData.title,
-          tipo: formData.type as 'casa' | 'apartamento' | 'comercial' | 'terreno' | 'kitnet' | 'studio' | 'cobertura',
+          tipo: formData.type as any,
           comodos: formData.rooms,
           max_pessoas: formData.maxPeople ? parseInt(formData.maxPeople) : null,
           aceita_pets: formData.acceptsPets,
@@ -414,45 +471,48 @@ export default function PropertyForm() {
           fotos: allPhotos,
         };
 
-        // Atualizar o registro final
-        const { error: updateError } = await supabase
-          .from('imoveis')
-          .update(finalPropertyData)
-          .eq('id', propertyId);
+        if (!propertyId) throw new Error('ID do imóvel não encontrado para atualização');
+        
+        const updateResult = await updatePropertyAction(propertyId, finalPropertyData);
 
-        if (updateError) throw updateError;
+        if (!updateResult.success) {
+          throw new Error(updateResult.error);
+        }
+        
+        setProgressValue(100);
       };
 
-      // 3. Corrida contra o tempo
+      let timeoutId: any;
+      const timeoutPromise = new Promise((_, reject) => {
+        timeoutId = setTimeout(() => {
+          reject(new Error('TIMEOUT_EXCEEDED'));
+        }, 90000);
+      });
+
       await Promise.race([saveAction(), timeoutPromise]);
+      clearTimeout(timeoutId);
 
-      if (isEditing) {
-        toast.success("Imóvel atualizado com sucesso!");
-      } else {
-        toast.success("Imóvel cadastrado com sucesso!", {
-          description: "Você pode compartilhar o link do imóvel.",
-        });
-      }
-
+      toast.success(isEditing ? "Imóvel atualizado!" : "Imóvel cadastrado com sucesso!");
       router.push("/dashboard/imoveis");
     } catch (error: any) {
+      hasError = true;
+      setUploadStatus('error');
       console.error('Erro ao salvar imóvel:', error);
 
       if (error.message === 'TIMEOUT_EXCEEDED') {
-        toast.error('A conexão está lenta e o tempo limite foi atingido.', {
-          description: 'Verifique sua internet ou tente novamente.'
-        });
+        toast.error('A conexão está lenta. Tente novamente mais tarde.');
       } else if (error.message === 'SESSION_EXPIRED') {
-        toast.error('Sua sessão expirou por inatividade.', {
-          description: 'Por favor, recarregue a página ou faça login novamente.'
-        });
+        toast.error('Sua sessão expirou. Por favor, faça login novamente.');
       } else if (error.message === 'MIN_PHOTOS_REQUIRED') {
-        // Já disparou toast acima
+        toast.error('São necessárias pelo menos 3 fotos.');
       } else {
-        toast.error('Erro ao salvar imóvel. Tente novamente.');
+        toast.error('Ocorreu um erro inesperado. Verifique os dados e tente novamente.');
       }
     } finally {
       setIsSubmitting(false);
+      if (!hasError) {
+        setTimeout(() => setUploadStatus('idle'), 500);
+      }
     }
   };
 
@@ -492,6 +552,43 @@ export default function PropertyForm() {
 
   return (
     <>
+      {/* Modal de Progresso Amigável */}
+      <Dialog open={uploadStatus !== 'idle'} onOpenChange={() => {
+        if (uploadStatus === 'error') setUploadStatus('idle');
+      }}>
+        <DialogContent className="sm:max-w-md border-none shadow-2xl">
+          <DialogHeader className="space-y-3 pb-4">
+            <DialogTitle className="text-xl font-display text-center">
+              {uploadStatus === 'error' ? 'Ops! Algo deu errado' : 'Quase lá...'}
+            </DialogTitle>
+            <DialogDescription className="text-center text-base">
+              {uploadStatus === 'optimizing' && "Otimizando suas fotos..."}
+              {uploadStatus === 'preparing' && "Organizando as informações do imóvel..."}
+              {uploadStatus === 'storing' && "Guardando suas fotos com segurança..."}
+              {uploadStatus === 'finalizing' && "Finalizando os detalhes finais..."}
+              {uploadStatus === 'error' && "Houve um problema ao salvar. Verifique sua conexão e tente novamente."}
+            </DialogDescription>
+          </DialogHeader>
+
+          {uploadStatus !== 'error' && (
+            <div className="space-y-6 py-4">
+              <Progress value={progressValue} className="h-2.5" />
+              {/* <div className="flex justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+              </div> */}
+            </div>
+          )}
+
+          {uploadStatus === 'error' && (
+            <div className="flex justify-center pt-2">
+              <Button onClick={() => setUploadStatus('idle')} className="bg-blue-600">
+                Tentar novamente
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
