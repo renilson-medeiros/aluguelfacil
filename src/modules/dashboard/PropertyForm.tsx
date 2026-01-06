@@ -482,6 +482,7 @@ export default function PropertyForm() {
         setProgressValue(100);
       };
 
+      let timeoutId: any;
       const timeoutPromise = new Promise((_, reject) => {
         timeoutId = setTimeout(() => {
           reject(new Error('TIMEOUT_EXCEEDED'));
