@@ -57,6 +57,32 @@ export async function POST(request: NextRequest) {
         const body: RequestBody = await request.json();
         const { data, userId, propertyId } = body;
 
+        // 1. Validar autenticação e obter UID real da sessão
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+        if (authError || !user) {
+            return NextResponse.json({ success: false, error: 'Não autorizado' }, { status: 401 });
+        }
+
+        // 2. Blindagem: Validar se o userId do body é o mesmo da sessão (evita Personagem/Spoofing)
+        if (user.id !== userId) {
+            console.error(`[Security] Tentativa de spoofing: Sessão ${user.id} tentando agir como ${userId}`);
+            return NextResponse.json({ success: false, error: 'Acesso negado' }, { status: 403 });
+        }
+
+        // 3. Blindagem: Validar se o imóvel realmente pertence a este usuário no banco
+        const { data: imovelCheck, error: dbError } = await supabase
+            .from('imoveis')
+            .select('id')
+            .eq('id', propertyId)
+            .eq('proprietario_id', user.id)
+            .single();
+
+        if (dbError || !imovelCheck) {
+            console.error(`[Security] Tentativa de acesso a imóvel alheio: Usuário ${user.id}, Imóvel ${propertyId}`);
+            return NextResponse.json({ success: false, error: 'Imóvel não encontrado ou sem permissão' }, { status: 403 });
+        }
+
         // Criar PDF com jsPDF
         const doc = new jsPDF();
         const monthName = months[parseInt(data.referenceMonth) - 1];
