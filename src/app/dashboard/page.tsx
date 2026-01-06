@@ -31,27 +31,27 @@ export default async function DashboardPage() {
             <DashboardClientShell />
 
             <Suspense fallback={<StatsSkeleton />}>
-                <StatsSection />
+                <StatsSection userId={user.id} />
             </Suspense>
 
             <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
                 <Suspense fallback={<RevenueSkeleton />}>
-                    <RevenueSection />
+                    <RevenueSection userId={user.id} />
                 </Suspense>
 
                 <div className="space-y-6">
                     <CardDica />
                     <Suspense fallback={<OccupancyRateSkeleton />}>
-                        <OccupancyRateSection />
+                        <OccupancyRateSection userId={user.id} />
                     </Suspense>
                     <Suspense fallback={<AlertsSkeleton />}>
-                        <AlertsSection />
+                        <AlertsSection userId={user.id} />
                     </Suspense>
                 </div>
             </div>
 
             <Suspense fallback={<PropertiesSkeleton />}>
-                <PropertiesPreviewSection />
+                <PropertiesPreviewSection userId={user.id} />
             </Suspense>
         </div>
     );
@@ -81,12 +81,16 @@ function CardDica() {
 
 // Funções auxiliares de busca de dados no servidor
 
-async function fetchDashboardStats(supabase: any) {
+async function fetchDashboardStats(supabase: any, userId: string) {
     try {
         const [imoveisRes, tenantsRes, receiptsRes] = await Promise.all([
-            supabase.from('imoveis').select('*', { count: 'exact', head: true }),
-            supabase.from('inquilinos').select('*', { count: 'exact', head: true }).eq('status', 'ativo'),
-            supabase.from('comprovantes').select('*', { count: 'exact', head: true }).eq('tipo', 'pagamento')
+            supabase.from('imoveis').select('*', { count: 'exact', head: true }).eq('proprietario_id', userId),
+            supabase.from('inquilinos').select('id, imoveis!inner(proprietario_id)', { count: 'exact', head: true })
+                .eq('status', 'ativo')
+                .eq('imoveis.proprietario_id', userId),
+            supabase.from('comprovantes').select('id, imoveis!inner(proprietario_id)', { count: 'exact', head: true })
+                .eq('tipo', 'pagamento')
+                .eq('imoveis.proprietario_id', userId)
         ]);
 
         return {
@@ -106,7 +110,7 @@ async function fetchDashboardStats(supabase: any) {
     }
 }
 
-async function fetchRevenueData(supabase: any) {
+async function fetchRevenueData(supabase: any, userId: string) {
     try {
         const sixMonthsAgo = new Date();
         sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
@@ -115,8 +119,9 @@ async function fetchRevenueData(supabase: any) {
 
         const { data, error } = await supabase
             .from('comprovantes')
-            .select('valor, mes_referencia')
+            .select('valor, mes_referencia, imoveis!inner(proprietario_id)')
             .eq('tipo', 'pagamento')
+            .eq('imoveis.proprietario_id', userId)
             .gte('mes_referencia', dateStr)
             .order('mes_referencia', { ascending: true });
 
@@ -152,7 +157,7 @@ async function fetchRevenueData(supabase: any) {
     }
 }
 
-async function fetchAlerts(supabase: any) {
+async function fetchAlerts(supabase: any, userId: string) {
     try {
         const now = new Date();
         const today = now.getDate();
@@ -166,16 +171,19 @@ async function fetchAlerts(supabase: any) {
                     nome_completo,
                     dia_vencimento,
                     valor_aluguel,
-                    imoveis (
+                    imoveis!inner (
                         endereco_rua,
-                        endereco_numero
+                        endereco_numero,
+                        proprietario_id
                     )
                 `)
-                .eq('status', 'ativo'),
+                .eq('status', 'ativo')
+                .eq('imoveis.proprietario_id', userId),
             supabase
                 .from('comprovantes')
-                .select('inquilino_id')
+                .select('inquilino_id, imoveis!inner(proprietario_id)')
                 .eq('tipo', 'pagamento')
+                .eq('imoveis.proprietario_id', userId)
                 .gte('mes_referencia', currentMonthStart)
         ]);
 
@@ -230,7 +238,7 @@ async function fetchAlerts(supabase: any) {
     }
 }
 
-async function fetchInitialProperties(supabase: any) {
+async function fetchInitialProperties(supabase: any, userId: string) {
     try {
         const { data: imoveisRecentes } = await supabase
             .from('imoveis')
@@ -242,6 +250,7 @@ async function fetchInitialProperties(supabase: any) {
                 created_at,
                 inquilinos(nome_completo)
             `)
+            .eq('proprietario_id', userId)
             .order('created_at', { ascending: false })
             .range(0, 2); // ITEMS_PER_PAGE = 3
 

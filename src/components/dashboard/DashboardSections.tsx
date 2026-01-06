@@ -3,17 +3,21 @@ import { createClient } from "@/lib/supabase/server";
 import { StatsSkeleton, RevenueSkeleton, AlertsSkeleton, PropertiesSkeleton } from "./DashboardSkeletons";
 import RevenueChart from "@/components/dashboard/RevenueChart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Building2, TrendingUp, AlertCircle, Clock } from "lucide-react";
+import { Building2, TrendingUp, AlertCircle, Clock, Plus } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 // --- Stats Section ---
-export async function StatsSection() {
+export async function StatsSection({ userId }: { userId: string }) {
     const supabase = await createClient();
     const [imoveisRes, tenantsRes, receiptsRes] = await Promise.all([
-        supabase.from('imoveis').select('*', { count: 'exact', head: true }),
-        supabase.from('inquilinos').select('*', { count: 'exact', head: true }).eq('status', 'ativo'),
-        supabase.from('comprovantes').select('*', { count: 'exact', head: true }).eq('tipo', 'pagamento')
+        supabase.from('imoveis').select('*', { count: 'exact', head: true }).eq('proprietario_id', userId),
+        supabase.from('inquilinos').select('id, imoveis!inner(proprietario_id)', { count: 'exact', head: true })
+            .eq('status', 'ativo')
+            .eq('imoveis.proprietario_id', userId),
+        supabase.from('comprovantes').select('id, imoveis!inner(proprietario_id)', { count: 'exact', head: true })
+            .eq('tipo', 'pagamento')
+            .eq('imoveis.proprietario_id', userId)
     ]);
 
     const stats = {
@@ -55,8 +59,8 @@ const UsersSectionIcon = Users;
 const ReceiptSectionIcon = Receipt;
 
 // --- Revenue Section (Original Chart) ---
-export async function RevenueSection() {
-    const revenueData = await fetchRevenueData();
+export async function RevenueSection({ userId }: { userId: string }) {
+    const revenueData = await fetchRevenueData(userId);
 
     return (
         <Card className="lg:col-span-2">
@@ -87,13 +91,13 @@ export async function RevenueSection() {
 // --- Revenue Trend Section (New Light Alternative) ---
 import RevenueTrendCard from "./RevenueTrendCard";
 
-export async function RevenueTrendSection() {
-    const revenueData = await fetchRevenueData();
+export async function RevenueTrendSection({ userId }: { userId: string }) {
+    const revenueData = await fetchRevenueData(userId);
     return <RevenueTrendCard data={revenueData} />;
 }
 
 // Helper to fetch and format revenue data
-async function fetchRevenueData() {
+async function fetchRevenueData(userId: string) {
     const supabase = await createClient();
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
@@ -102,8 +106,9 @@ async function fetchRevenueData() {
 
     const { data } = await supabase
         .from('comprovantes')
-        .select('valor, mes_referencia')
+        .select('valor, mes_referencia, imoveis!inner(proprietario_id)')
         .eq('tipo', 'pagamento')
+        .eq('imoveis.proprietario_id', userId)
         .gte('mes_referencia', dateStr)
         .order('mes_referencia', { ascending: true });
 
@@ -130,11 +135,13 @@ async function fetchRevenueData() {
 // --- Occupancy Rate Section ---
 import { ChartPie } from "lucide-react";
 
-export async function OccupancyRateSection() {
+export async function OccupancyRateSection({ userId }: { userId: string }) {
     const supabase = await createClient();
     const [imoveisRes, tenantsRes] = await Promise.all([
-        supabase.from('imoveis').select('*', { count: 'exact', head: true }),
-        supabase.from('inquilinos').select('*', { count: 'exact', head: true }).eq('status', 'ativo')
+        supabase.from('imoveis').select('*', { count: 'exact', head: true }).eq('proprietario_id', userId),
+        supabase.from('inquilinos').select('id, imoveis!inner(proprietario_id)', { count: 'exact', head: true })
+            .eq('status', 'ativo')
+            .eq('imoveis.proprietario_id', userId)
     ]);
 
     const totalImoveis = imoveisRes.count || 0;
@@ -167,16 +174,26 @@ export async function OccupancyRateSection() {
 
 // --- Alerts Section ---
 import AlertsCarousel from "./AlertsCarousel";
+import { Button } from "../ui/button";
 
-export async function AlertsSection() {
+export async function AlertsSection({ userId }: { userId: string }) {
     const supabase = await createClient();
     const now = new Date();
     const today = now.getDate();
     const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 
     const [tenantsRes, receiptsRes] = await Promise.all([
-        supabase.from('inquilinos').select('id, nome_completo, dia_vencimento, valor_aluguel, imoveis (endereco_rua, endereco_numero, titulo)').eq('status', 'ativo'),
-        supabase.from('comprovantes').select('inquilino_id').eq('tipo', 'pagamento').gte('mes_referencia', currentMonthStart)
+        supabase
+            .from('inquilinos')
+            .select('id, nome_completo, dia_vencimento, valor_aluguel, imoveis!inner (endereco_rua, endereco_numero, titulo, proprietario_id)')
+            .eq('status', 'ativo')
+            .eq('imoveis.proprietario_id', userId),
+        supabase
+            .from('comprovantes')
+            .select('inquilino_id, imoveis!inner(proprietario_id)')
+            .eq('tipo', 'pagamento')
+            .eq('imoveis.proprietario_id', userId)
+            .gte('mes_referencia', currentMonthStart)
     ]);
 
     const receivedInquilinoIds = new Set(receiptsRes.data?.map((r: any) => r.inquilino_id) || []);
@@ -199,11 +216,12 @@ export async function AlertsSection() {
 }
 
 // --- Properties Preview Section ---
-export async function PropertiesPreviewSection() {
+export async function PropertiesPreviewSection({ userId }: { userId: string }) {
     const supabase = await createClient();
     const { data: imoveisRecentes } = await supabase
         .from('imoveis')
         .select('id, endereco_rua, endereco_numero, status, created_at, inquilinos(nome_completo)')
+        .eq('proprietario_id', userId)
         .order('created_at', { ascending: false })
         .range(0, 2);
 
@@ -221,25 +239,37 @@ export async function PropertiesPreviewSection() {
                 <CardTitle className="font-display text-lg">Seus imóveis recentes</CardTitle>
             </CardHeader>
             <CardContent>
-                <div className="space-y-4">
-                    {formattedProperties.map((property) => (
-                        <div key={property.id} className="flex items-center justify-between p-3 border rounded-lg bg-card">
-                            <div className="flex items-center gap-3">
-                                <Building2 className="h-5 w-5 text-blue-600" />
-                                <div>
-                                    <p className="font-medium text-sm">{property.endereco_rua}, {property.endereco_numero}</p>
-                                    <p className="text-xs text-muted-foreground">{property.inquilino_nome || "Sem inquilino"}</p>
+                {formattedProperties.length > 0 ? (
+                    <div className="space-y-4">
+                        {formattedProperties.map((property) => (
+                            <div key={property.id} className="flex items-center justify-between p-3 border rounded-lg bg-card">
+                                <div className="flex items-center gap-3">
+                                    <Building2 className="h-5 w-5 text-blue-600" />
+                                    <div>
+                                        <p className="font-medium text-sm">{property.endereco_rua}, {property.endereco_numero}</p>
+                                        <p className="text-xs text-muted-foreground">{property.inquilino_nome || "Sem inquilino"}</p>
+                                    </div>
                                 </div>
+                                <span className={cn(
+                                    "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase",
+                                    property.status === "alugado" ? "bg-red-50 text-red-700" : "bg-green-50 text-green-700"
+                                )}>
+                                    {property.status === "alugado" ? "Ocupado" : "Livre"}
+                                </span>
                             </div>
-                            <span className={cn(
-                                "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase",
-                                property.status === "alugado" ? "bg-red-50 text-red-700" : "bg-green-50 text-green-700"
-                            )}>
-                                {property.status === "alugado" ? "Ocupado" : "Livre"}
-                            </span>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="flex flex-col items-center justify-center text-center py-6">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent mb-4">
+                            <Building2 className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
                         </div>
-                    ))}
-                </div>
+                        <p className="text-sm font-medium">Nenhum imóvel cadastrado</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                            Cadastre seu primeiro imóvel para começar.
+                        </p>
+                    </div>
+                )}
             </CardContent>
         </Card>
     );
