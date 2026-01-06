@@ -386,7 +386,7 @@ export default function PropertyDetailClient() {
                 <Header />
                 <main className="flex-1 flex items-center justify-center">
                     <div className="text-center py-16">
-                        <Loader2 className="h-12 w-12 animate-spin text-blue-500 mx-auto mb-4" />
+                        <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
                         <p className="text-muted-foreground">Carregando imóvel...</p>
                     </div>
                 </main>
@@ -408,7 +408,7 @@ export default function PropertyDetailClient() {
                             O imóvel que você procura não existe ou foi removido.
                         </p>
                         <Button
-                            className="bg-blue-500 hover:bg-blue-500"
+                            className="bg-blue-600 hover:bg-blue-600"
                             onClick={() => router.back()}
                         >
                             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -440,7 +440,7 @@ export default function PropertyDetailClient() {
                         </button>
                     ) : (
                         <div className="flex items-center gap-2 text-muted-foreground py-2">
-                            <Info className="w-4 h-4 text-blue-500" />
+                            <Info className="w-4 h-4 text-blue-600" />
                             <span>Informações do Imóvel de {property.owner.name}</span>
                         </div>
                     )}
@@ -529,7 +529,7 @@ export default function PropertyDetailClient() {
                                             <div className={cn(
                                                 "relative h-full w-full overflow-hidden rounded-lg border-2 transition-all duration-300 cursor-pointer",
                                                 selectedIndex === index
-                                                    ? "border-blue-500 shadow-lg opacity-100"
+                                                    ? "border-blue-600 shadow-lg opacity-100"
                                                     : "border-transparent opacity-40 hover:opacity-100"
                                             )}>
                                                 <img
@@ -558,7 +558,7 @@ export default function PropertyDetailClient() {
                         {/* Close Button */}
                         <button
                             onClick={() => setIsLightboxOpen(false)}
-                            className="absolute cursor-pointer right-4 top-4 z-160 rounded-full bg-blue-600 p-2 text-white/70 backdrop-blur-sm transition-colors hover:bg-blue-500 hover:text-white sm:right-8 sm:top-8"
+                            className="absolute cursor-pointer right-4 top-4 z-160 rounded-full bg-blue-600 p-2 text-white/70 backdrop-blur-sm transition-colors hover:bg-blue-600 hover:text-white sm:right-8 sm:top-8"
                             aria-label="Fechar galeria"
                         >
                             <X className="h-6 w-6" />
@@ -623,7 +623,7 @@ export default function PropertyDetailClient() {
                                     {property.title}
                                 </h1>
                                 <div className="mt-2 flex items-baseline gap-2 text-muted-foreground">
-                                    <MapPin className="h-4 w-4 text-blue-500" aria-hidden="true" />
+                                    <MapPin className="h-4 w-4 text-blue-600" aria-hidden="true" />
                                     <span>
                                         {property.address.street}, {property.address.number}
                                         {property.address.complement && ` - ${property.address.complement}`}, {property.address.neighborhood}, {property.address.city} - {property.address.state}
@@ -683,21 +683,21 @@ export default function PropertyDetailClient() {
                                     <h2 className="font-display text-xl font-semibold">Regras e políticas</h2>
                                     <div className="mt-4 grid gap-4 sm:grid-cols-2">
                                         <div className="flex items-center gap-3">
-                                            <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${property.details.acceptsPets ? 'bg-blue-500/10' : 'bg-destructive/10'}`}>
-                                                <PawPrint className={`h-5 w-5 ${property.details.acceptsPets ? 'text-blue-500' : 'text-destructive'}`} aria-hidden="true" />
+                                            <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${property.details.acceptsPets ? 'bg-blue-600/10' : 'bg-red-600/10'}`}>
+                                                <PawPrint className={`h-5 w-5 ${property.details.acceptsPets ? 'text-blue-600' : 'text-red-600'}`} aria-hidden="true" />
                                             </div>
                                             <span>{property.details.acceptsPets ? 'Aceita pets' : 'Não aceita pets'}</span>
                                         </div>
                                         <div className="flex items-center gap-3">
-                                            <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${property.details.acceptsChildren ? 'bg-blue-500/10' : 'bg-destructive/10'}`}>
-                                                <Baby className={`h-5 w-5 ${property.details.acceptsChildren ? 'text-blue-500' : 'text-destructive'}`} aria-hidden="true" />
+                                            <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${property.details.acceptsChildren ? 'bg-blue-600/10' : 'bg-red-600/10'}`}>
+                                                <Baby className={`h-5 w-5 ${property.details.acceptsChildren ? 'text-blue-600' : 'text-red-600'}`} aria-hidden="true" />
                                             </div>
                                             <span>{property.details.acceptsChildren ? 'Aceita crianças' : 'Não aceita crianças'}</span>
                                         </div>
                                         {property.details.maxPeople !== null && property.details.maxPeople > 0 && (
                                             <div className="flex items-center gap-3">
-                                                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent">
-                                                    <Users className="h-5 w-5 text-accent-foreground" aria-hidden="true" />
+                                                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-600/10">
+                                                    <Users className="h-5 w-5 text-green-600" aria-hidden="true" />
                                                 </div>
                                                 <span>Máximo {property.details.maxPeople} pessoas</span>
                                             </div>
@@ -712,32 +712,32 @@ export default function PropertyDetailClient() {
                                     <h2 className="font-display text-xl font-semibold">Incluso no valor</h2>
                                     <div className="mt-4 grid gap-4 sm:grid-cols-2">
                                         <div className="flex items-center gap-3">
-                                            <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${property.included.water ? 'bg-blue-500/10' : 'bg-muted'}`}>
-                                                <Droplets className={`h-5 w-5 ${property.included.water ? 'text-blue-500' : 'text-muted-foreground'}`} aria-hidden="true" />
+                                            <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${property.included.water ? 'bg-blue-600/10' : 'bg-red-600/10'}`}>
+                                                <Droplets className={`h-5 w-5 ${property.included.water ? 'text-blue-600' : 'text-red-600'}`} aria-hidden="true" />
                                             </div>
                                             <span className={property.included.water ? '' : 'text-muted-foreground'}>
                                                 Água {property.included.water ? 'inclusa' : 'não inclusa'}
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-3">
-                                            <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${property.included.electricity ? 'bg-blue-500/10' : 'bg-muted'}`}>
-                                                <Zap className={`h-5 w-5 ${property.included.electricity ? 'text-blue-500' : 'text-muted-foreground'}`} aria-hidden="true" />
+                                            <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${property.included.electricity ? 'bg-blue-600/10' : 'bg-red-600/10'}`}>
+                                                <Zap className={`h-5 w-5 ${property.included.electricity ? 'text-blue-600' : 'text-red-600'}`} aria-hidden="true" />
                                             </div>
                                             <span className={property.included.electricity ? '' : 'text-muted-foreground'}>
                                                 Luz {property.included.electricity ? 'inclusa' : 'não inclusa'}
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-3">
-                                            <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${property.included.internet ? 'bg-blue-500/10' : 'bg-muted'}`}>
-                                                <Wifi className={`h-5 w-5 ${property.included.internet ? 'text-blue-500' : 'text-muted-foreground'}`} aria-hidden="true" />
+                                            <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${property.included.internet ? 'bg-blue-600/10' : 'bg-red-600/10'}`}>
+                                                <Wifi className={`h-5 w-5 ${property.included.internet ? 'text-blue-600' : 'text-red-600'}`} aria-hidden="true" />
                                             </div>
                                             <span className={property.included.internet ? '' : 'text-muted-foreground'}>
                                                 Internet {property.included.internet ? 'inclusa' : 'não inclusa'}
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-3">
-                                            <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${property.included.gas ? 'bg-blue-500/10' : 'bg-muted'}`}>
-                                                <Flame className={`h-5 w-5 ${property.included.gas ? 'text-blue-500' : 'text-muted-foreground'}`} aria-hidden="true" />
+                                            <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${property.included.gas ? 'bg-blue-600/10' : 'bg-red-600/10'}`}>
+                                                <Flame className={`h-5 w-5 ${property.included.gas ? 'text-blue-600' : 'text-red-600'}`} aria-hidden="true" />
                                             </div>
                                             <span className={property.included.gas ? '' : 'text-muted-foreground'}>
                                                 Gás {property.included.gas ? 'incluso' : 'não incluso'}
@@ -863,7 +863,7 @@ export default function PropertyDetailClient() {
                                         {user?.id === property.owner.id ? (
                                             <>
                                                 <Button
-                                                    className={`w-full h-12 text-base ${property.status === 'alugado' ? 'bg-amber-500 hover:bg-amber-600' : 'bg-blue-600 hover:bg-blue-500'}`}
+                                                    className={`w-full h-12 text-base ${property.status === 'alugado' ? 'bg-amber-500 hover:bg-amber-600' : 'bg-blue-600 hover:bg-blue-600'}`}
                                                     onClick={() => {
                                                         if (property.status === 'alugado') {
                                                             setShowTerminateDialog(true);
@@ -918,7 +918,7 @@ export default function PropertyDetailClient() {
                                     </div>
 
                                     <p className="mt-4 text-center text-xs text-muted-foreground">
-                                        Código do imóvel: <span className="font-mono bg-muted px-1 rounded">{property.id.slice(0, 8)}</span>
+                                        Código do imóvel: <span className="font-mono bg-green-600/10 text-green-600 px-1 rounded">{property.id.slice(0, 8)}</span>
                                     </p>
                                 </CardContent>
                             </Card>
@@ -950,7 +950,7 @@ export default function PropertyDetailClient() {
                             <AlertDialogDescription>
                                 Esta ação irá alterar o status do imóvel para "Disponível" e mover o inquilino atual para o histórico.
                                 <br /><br />
-                                <span className="font-semibold text-destructive">Atenção:</span> Todos os comprovantes e arquivos associados a esta locação serão excluídos permanentemente para liberar espaço.
+                                <span className="font-semibold text-red-600">Atenção:</span> Todos os comprovantes e arquivos associados a esta locação serão excluídos permanentemente para liberar espaço.
                             </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
