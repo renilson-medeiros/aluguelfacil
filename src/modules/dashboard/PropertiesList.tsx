@@ -18,7 +18,9 @@ import {
   MoreHorizontal,
   MapPin,
   Trash2,
-  UserMinus
+  UserMinus,
+  Settings2,
+  Check
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -211,6 +213,32 @@ export default function PropertiesList({ initialData = [], initialLoading = true
     }
   }, [deleteId]);
 
+  const handleChangeStatus = useCallback(async (propertyId: string, newStatus: 'disponivel' | 'manutencao') => {
+    try {
+      setLoading(true);
+
+      const { error } = await supabase
+        .from('imoveis')
+        .update({ status: newStatus })
+        .eq('id', propertyId);
+
+      if (error) throw error;
+
+      toast.success(
+        newStatus === 'manutencao' 
+          ? 'Imóvel marcado como em manutenção' 
+          : 'Imóvel marcado como disponível'
+      );
+
+      await loadProperties();
+    } catch (error) {
+      console.error('Erro ao alterar status:', error);
+      toast.error('Erro ao alterar status do imóvel');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const handleTerminateLease = useCallback(async (propertyId: string) => {
     try {
       setLoading(true);
@@ -361,6 +389,7 @@ export default function PropertiesList({ initialData = [], initialLoading = true
                 onShare={handleShare}
                 onDelete={setDeleteId}
                 onTerminate={handleTerminateLease}
+                onChangeStatus={handleChangeStatus}
               />
             ))}
           </div>
@@ -421,9 +450,10 @@ interface PropertyCardProps {
   onShare: (property: Property) => void;
   onDelete: (id: string) => void;
   onTerminate: (id: string) => void;
+  onChangeStatus: (id: string, status: 'disponivel' | 'manutencao') => void;
 }
 
-const PropertyCard = memo(({ property, index, onShare, onDelete, onTerminate }: PropertyCardProps) => {
+const PropertyCard = memo(({ property, index, onShare, onDelete, onTerminate, onChangeStatus }: PropertyCardProps) => {
   return (
     <Card
       className="group overflow-hidden transition-all duration-300 hover:shadow-sm animate-fade-in"
@@ -439,12 +469,19 @@ const PropertyCard = memo(({ property, index, onShare, onDelete, onTerminate }: 
           loading="lazy"
         />
         <span
-          className={`absolute right-3 top-3 rounded-full px-3 py-1 text-xs font-medium ${property.status === "ocupado"
-            ? "bg-red-100 text-red-500"
-            : "bg-green-100 text-green-500"
-            }`}
+          className={`absolute right-3 top-3 rounded-full px-3 py-1 text-xs font-medium ${
+            property.status === "ocupado"
+              ? "bg-red-100 text-red-500"
+              : property.status === "manutenção"
+              ? "bg-orange-100 text-orange-500"
+              : "bg-green-100 text-green-500"
+          }`}
         >
-          {property.status === "ocupado" ? "Ocupado" : "Disponível"}
+          {property.status === "ocupado" 
+            ? "Ocupado" 
+            : property.status === "manutenção" 
+            ? "Manutenção" 
+            : "Disponível"}
         </span>
       </div>
       <CardContent className="p-4">
@@ -500,6 +537,24 @@ const PropertyCard = memo(({ property, index, onShare, onDelete, onTerminate }: 
                   >
                     <UserMinus className="mr-2 h-4 w-4" />
                     Finalizar Locação
+                  </DropdownMenuItem>
+                )}
+                {property.status === "disponível" && (
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={() => onChangeStatus(property.id, 'manutencao')}
+                  >
+                    <Settings2 className="mr-2 h-4 w-4 text-orange-600" />
+                    Marcar como em manutenção
+                  </DropdownMenuItem>
+                )}
+                {property.status === "manutenção" && (
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={() => onChangeStatus(property.id, 'disponivel')}
+                  >
+                    <Check className="mr-2 h-4 w-4 text-green-600" />
+                    Marcar como disponível
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />

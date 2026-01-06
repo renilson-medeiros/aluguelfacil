@@ -63,6 +63,22 @@ interface TenantsListProps {
   initialLoading?: boolean;
 }
 
+const formatCPF = (cpf: string) => {
+  const numbers = cpf.replace(/\D/g, '');
+  if (numbers.length !== 11) return cpf;
+  return numbers.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+};
+
+const formatPhone = (phone: string) => {
+  const numbers = phone.replace(/\D/g, '');
+  if (numbers.length === 11) {
+    return numbers.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+  } else if (numbers.length === 10) {
+    return numbers.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+  }
+  return phone;
+};
+
 export default function TenantsList({ initialData = [], initialLoading = true }: TenantsListProps) {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
@@ -368,20 +384,20 @@ const TenantCard = memo(({ tenant, index, onTerminate }: TenantCardProps) => {
                   {tenant.status === "ativo" ? "Ativo" : "Inativo"}
                 </Badge>
               </div>
-              <p className="text-sm text-muted-foreground">CPF: {tenant.cpf}</p>
+              <p className="text-sm text-muted-foreground">CPF: {formatCPF(tenant.cpf)}</p>
 
               <div className="mt-3 flex flex-wrap gap-4 text-sm">
                 <div className="flex items-center gap-1.5 text-muted-foreground">
-                  <Building2 className="h-4 w-4" />
+                  <Building2 className="h-4 w-4 text-blue-600" />
                   <span>{tenant.imoveis?.titulo || 'Imóvel não encontrado'}</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-muted-foreground">
-                  <Calendar className="h-4 w-4" />
+                  <Calendar className="h-4 w-4 text-blue-600" />
                   <span>Dia {tenant.dia_vencimento}</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-muted-foreground">
-                  <Phone className="h-4 w-4" />
-                  <span>{tenant.telefone}</span>
+                  <Phone className="h-4 w-4 text-blue-600" />
+                  <span>{formatPhone(tenant.telefone)}</span>
                 </div>
               </div>
             </div>
@@ -389,7 +405,7 @@ const TenantCard = memo(({ tenant, index, onTerminate }: TenantCardProps) => {
 
           <div className="flex items-center gap-2 text-muted-foreground ">
             <Link href={`/dashboard/comprovantes/novo?inquilino=${tenant.id}`}>
-              <Button variant="outline" size="sm" className="gap-1.5 border-blue-600 hover:border-blue-500 bg-blue-600 hover:bg-blue-500 text-white">
+              <Button variant="outline" size="sm" className="gap-1.5 border-blue-600 hover:border-blue-500 bg-blue-600 hover:bg-blue-500 text-white hover:text-white">
                 <Receipt className="h-4 w-4" />
                 Gerar comprovante
               </Button>

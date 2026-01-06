@@ -1,7 +1,7 @@
 "use client";
 
-import TenantForm from "@/modules/dashboard/TenantForm";
+import TenantDetails from "@/modules/dashboard/TenantDetails";
 
 export default function TenantDetailPage() {
-    return <TenantForm />;
+    return <TenantDetails />;
 }

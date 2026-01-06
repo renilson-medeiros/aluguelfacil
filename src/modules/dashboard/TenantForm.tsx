@@ -69,8 +69,8 @@ export default function TenantForm() {
   const id = params?.id as string;
 
   // Determinar o modo baseado na URL
-  const isEditMode = pathname?.includes("/dashboard/inquilinos/");
-  const isRegistrationMode = pathname?.includes("/inquilino");
+  const isEditMode = pathname?.includes("/editar");
+  const isRegistrationMode = pathname?.includes("/inquilino") && !isEditMode;
 
   const [formData, setFormData] = useState<TenantFormData>(initialFormData);
   const [property, setProperty] = useState<PropertyData | null>(null);

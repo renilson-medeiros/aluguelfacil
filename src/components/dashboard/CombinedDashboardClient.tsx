@@ -102,7 +102,7 @@ export default function CombinedDashboardClient({
                                 <span>Distribuição</span>
                                 <span>Total: {occupancyData.total}</span>
                             </div>
-                            <div className="h-4 w-full flex rounded-full overflow-hidden bg-accent/50 p-1 gap-1">
+                            <div className="h-4 w-full flex rounded-full overflow-hidden bg-primary/5 p-1 gap-0.5">
                                 {occupancyData.alugado > 0 && (
                                     <div 
                                         className="h-full bg-blue-600 rounded-l-full transition-all duration-1000 ease-out"
@@ -117,7 +117,7 @@ export default function CombinedDashboardClient({
                                 )}
                                 {occupancyData.disponivel > 0 && (
                                     <div 
-                                        className="h-full bg-slate-200 rounded-full transition-all duration-1000 ease-out"
+                                        className="h-full bg-green-600/50 rounded-r-full transition-all duration-1000 ease-out"
                                         style={{ width: `${(occupancyData.disponivel / occupancyData.total) * 100}%` }}
                                     />
                                 )}

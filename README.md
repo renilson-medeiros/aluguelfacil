@@ -70,34 +70,6 @@ O **Lugo** é uma solução SaaS (Software as a Service) focada na automação e
 
 ---
 
-## � Como Começar
-
-Siga os passos abaixo para configurar e rodar o projeto localmente:
-
-1.  **Clone o repositório:**
-    ```bash
-    git clone https://github.com/renilson-medeiros/lugo.git
-    ```
-
-2.  **Instale as dependências:**
-    ```bash
-    npm install
-    ```
-
-3.  **Configure as variáveis de ambiente:**
-    Crie um arquivo `.env.local` na raiz com:
-    ```env
-    NEXT_PUBLIC_SUPABASE_URL=seu_url
-    NEXT_PUBLIC_SUPABASE_ANON_KEY=sua_key
-    ```
-
-4.  **Inicie o servidor de desenvolvimento:**
-    ```bash
-    npm run dev
-    ```
-
----
-
 ## �🔒 Segurança & Boas Práticas (Showcase Técnico)
 
 Este projeto foi construído focando em padrões de **Enterprise SaaS**, demonstrando domínio sobre:
@@ -111,7 +83,7 @@ Este projeto foi construído focando em padrões de **Enterprise SaaS**, demonst
 
 ## 👨‍💻 Desenvolvedor
 
-**Renilson Medeiros** - Especialista em Desenvolvimento Fullstack
+**Renilson Medeiros** - Desenvolvedor Front-end
 
 - **LinkedIn**: [Renilson Medeiros](https://linkedin.com/in/renilson-medeiros)
 - **GitHub**: [@renilson-medeiros](https://github.com/renilson-medeiros)
