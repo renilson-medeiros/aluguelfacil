@@ -491,7 +491,7 @@ const PropertyCard = memo(({ property, index, onShare, onDelete, onTerminate, on
           <span className="line-clamp-1">{property.address}</span>
         </div>
         <div className="mt-3 flex items-center justify-between">
-          <p className="font-semibold text-primary">
+          <p className="font-semibold text-tertiary">
             R$ {property.rent.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/mês
           </p>
           <div className="flex items-center gap-1">
