@@ -330,8 +330,8 @@ export default function ReceiptsList({ initialData = [], initialLoading = true }
                           <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-accent text-primary">
                             <Receipt className="h-6 w-6" aria-hidden="true" />
                           </div>
-                          <div className="flex flex-col gap-1">
-                            <div className="flex items-center gap-2">
+                          <div className="flex w-full flex-1 flex-col gap-1">
+                            <div className="flex items-center justify-between md:justify-start gap-4">
                               <h3 className="font-display font-semibold capitalize">
                                 {formatReferenceMonth(receipt.mes_referencia)}
                               </h3>

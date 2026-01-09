@@ -318,20 +318,23 @@ export default function TenantDetails() {
     <>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-4">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="shrink-0"
-            onClick={() => router.back()}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div className="flex-1">
-            <h1 className="font-display text-2xl font-bold sm:text-3xl">Detalhes do Inquilino</h1>
-            <p className="text-muted-foreground">Informações completas e histórico</p>
+        <div className="flex flex-col md:flex-row justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="shrink-0"
+              onClick={() => router.back()}
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div className="flex-1">
+              <h1 className="font-display text-2xl font-bold sm:text-3xl">Detalhes do Inquilino</h1>
+              <p className="text-muted-foreground">Informações completas e histórico</p>
+            </div>
           </div>
+          
           <div className="flex items-center gap-2">
             <Link href={`/dashboard/inquilinos/${tenant.id}/editar`}>
               <Button variant="outline" className="gap-2">
@@ -361,22 +364,37 @@ export default function TenantDetails() {
                 Informações Pessoais
               </CardTitle>
               <Badge
-                variant="outline"
-                className={`${
-                  tenant.status === 'ativo'
-                    ? 'bg-green-50 text-green-500 border-green-200'
-                    : 'bg-red-50 text-red-500 border-red-200'
-                }`}
-              >
-                {tenant.status === 'ativo' ? 'Ativo' : 'Inativo'}
-              </Badge>
+                    variant="outline"
+                    className={`hidden md:inline-block ${
+                      tenant.status === 'ativo'
+                        ? 'bg-green-50 text-green-500 border-green-200'
+                        : 'bg-red-50 text-red-500 border-red-200'
+                    }`}
+                  >
+                    {tenant.status === 'ativo' ? 'Ativo' : 'Inativo'}
+                  </Badge>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <p className="text-sm font-medium text-secondary">Nome Completo</p>
-                <p className="text-sm text-muted-foreground">{tenant.nome_completo}</p>
+              <div className="flex items-baseline justify-between md:justify-start gap-4">
+                <div>
+                  <p className="text-sm font-medium text-secondary">Nome Completo</p>
+                  <p className="text-sm text-muted-foreground">{tenant.nome_completo}</p>
+                </div>
+                
+                <div>
+                  <Badge
+                    variant="outline"
+                    className={`inline-block md:hidden ${
+                      tenant.status === 'ativo'
+                        ? 'bg-green-50 text-green-500 border-green-200'
+                        : 'bg-red-50 text-red-500 border-red-200'
+                    }`}
+                  >
+                    {tenant.status === 'ativo' ? 'Ativo' : 'Inativo'}
+                  </Badge>
+                </div>
               </div>
               <div>
                 <p className="text-sm font-medium text-secondary">CPF</p>
@@ -464,7 +482,7 @@ export default function TenantDetails() {
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5 text-tertiary" />
-                Histórico de Comprovantes
+                Histórico
               </CardTitle>
               {tenant.status === 'ativo' && (
                 <Link href={`/dashboard/comprovantes/novo?inquilino=${tenant.id}`}>
