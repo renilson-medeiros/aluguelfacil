@@ -575,7 +575,7 @@ const PropertyCard = memo(({ property, index, onShare, onDelete, onTerminate, on
           </p>
         ) : (
           <p className="mt-2 border-t border-border pt-2 text-xs text-muted-foreground">
-            Inquilino não cadastrado
+            Não possui inquilino
           </p>
         )}
       </CardContent>
