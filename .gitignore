@@ -14,10 +14,12 @@
 /out/
 
 # local documentation & private data
-/docs/
+/docs/*
+!docs/roadmap/
 *.txt
 *.md
 !README.md
+!docs/roadmap/*.md
 
 # production
 /build

@@ -157,7 +157,9 @@ async function fetchAlerts(supabase: any, userId: string) {
     try {
         const now = new Date();
         const today = now.getDate();
-        const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth();
+        const currentMonthStart = new Date(currentYear, currentMonth, 1).toISOString();
 
         const [tenantsRes, receiptsRes] = await Promise.all([
             supabase
@@ -167,6 +169,7 @@ async function fetchAlerts(supabase: any, userId: string) {
                     nome_completo,
                     dia_vencimento,
                     valor_aluguel,
+                    data_inicio,
                     imoveis!inner (
                         endereco_rua,
                         endereco_numero,
@@ -199,6 +202,42 @@ async function fetchAlerts(supabase: any, userId: string) {
             const property = Array.isArray(tenant.imoveis) ? tenant.imoveis[0] : tenant.imoveis;
             const propertyName = property ? `${property.endereco_rua}, ${property.endereco_numero}` : 'Imóvel';
 
+            // Calcular o primeiro vencimento válido baseado na data de início do contrato
+            const contractStartDate = tenant.data_inicio ? new Date(tenant.data_inicio) : null;
+            
+            if (contractStartDate) {
+                const contractStartDay = contractStartDate.getDate();
+                const contractStartMonth = contractStartDate.getMonth();
+                const contractStartYear = contractStartDate.getFullYear();
+                
+                // Se o contrato começou depois do dia de vencimento no mês de início,
+                // o primeiro vencimento é no próximo mês
+                let firstDueMonth = contractStartMonth;
+                let firstDueYear = contractStartYear;
+                
+                if (contractStartDay > dueDay) {
+                    firstDueMonth += 1;
+                    if (firstDueMonth > 11) {
+                        firstDueMonth = 0;
+                        firstDueYear += 1;
+                    }
+                }
+                
+                // Se ainda não chegou o primeiro vencimento, não mostrar alerta
+                if (currentYear < firstDueYear || 
+                    (currentYear === firstDueYear && currentMonth < firstDueMonth)) {
+                    return;
+                }
+                
+                // Se estamos no mês do primeiro vencimento mas ainda não passou o dia
+                if (currentYear === firstDueYear && 
+                    currentMonth === firstDueMonth && 
+                    today < dueDay) {
+                    return;
+                }
+            }
+
+            // Lógica original de alertas
             if (dueDay < today) {
                 dashboardAlerts.push({
                     id: `overdue-${tenant.id}`,
