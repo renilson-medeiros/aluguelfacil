@@ -188,6 +188,12 @@ export default function PropertyDetailClient() {
         }
     }, [id]);
 
+    useEffect(() => {
+        if (property && user && user.id === property.owner.id) {
+            loadTenants(property.id);
+        }
+    }, [property, user]);
+
     const loadProperty = async (propertyId: string) => {
         try {
             setLoading(true);
@@ -263,12 +269,8 @@ export default function PropertyDetailClient() {
                 },
             };
 
-            setProperty(formattedProperty);
 
-            // Carregar histórico de inquilinos se for o dono
-            if (user?.id === imovel.proprietario_id) {
-                loadTenants(propertyId);
-            }
+            setProperty(formattedProperty);
         } catch (error) {
             console.error('Erro ao carregar imóvel:', error);
             toast.error('Erro ao carregar imóvel');
