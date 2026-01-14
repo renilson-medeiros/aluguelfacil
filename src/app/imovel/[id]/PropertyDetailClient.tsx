@@ -137,6 +137,20 @@ export default function PropertyDetailClient() {
     const [showTerminateDialog, setShowTerminateDialog] = useState(false);
     const [isChanging, setIsChanging] = useState(false);
     const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const ITEMS_PER_PAGE = 5;
+
+    const totalPages = Math.ceil(tenants.length / ITEMS_PER_PAGE);
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const currentTenants = tenants.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+    const goToNextPage = () => {
+        if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+    };
+
+    const goToPreviousPage = () => {
+        if (currentPage > 1) setCurrentPage(currentPage - 1);
+    };
 
     // Sync carousels and update selected index
     useEffect(() => {
@@ -777,9 +791,9 @@ export default function PropertyDetailClient() {
                                                         Carregando histórico...
                                                     </div>
                                                 ) : tenants.length > 0 ? (
-                                                    <div className="rounded-lg border border-border overflow-hidden">
+                                                    <div className="rounded-lg w-full border border-border overflow-hidden">
                                                         <div className="overflow-x-auto">
-                                                            <table className="w-full text-sm text-left">
+                                                            <table className="text-sm text-left w-full">
                                                                 <thead className="bg-muted/50 text-muted-foreground border-b border-border">
                                                                     <tr>
                                                                         <th className="px-4 py-3 font-medium">Inquilino</th>
@@ -789,11 +803,11 @@ export default function PropertyDetailClient() {
                                                                     </tr>
                                                                 </thead>
                                                                 <tbody className="divide-y divide-border">
-                                                                    {tenants.map((tenant) => (
+                                                                    {currentTenants.map((tenant) => (
                                                                         <tr key={tenant.id} className="hover:bg-muted/30 transition-colors">
                                                                             <td className="px-4 py-4 font-medium">{tenant.nome_completo}</td>
                                                                             <td className="px-4 py-4 text-muted-foreground">
-                                                                                {new Date(tenant.data_inicio).toLocaleDateString('pt-BR')} - {tenant.data_fim ? new Date(tenant.data_fim).toLocaleDateString('pt-BR') : 'Atual'}
+                                                                                {new Date(tenant.data_inicio).toLocaleDateString('pt-BR', { month: '2-digit', year: '2-digit' })} - {tenant.data_fim ? new Date(tenant.data_fim).toLocaleDateString('pt-BR', { month: '2-digit', year: '2-digit' }) : 'Atual'}
                                                                             </td>
                                                                             <td className="px-4 py-4">
                                                                                 {tenant.valor_aluguel.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
@@ -808,7 +822,35 @@ export default function PropertyDetailClient() {
                                                                 </tbody>
                                                             </table>
                                                         </div>
-                                                    </div>
+                                                        
+                                                        {totalPages > 1 && (
+                                                            <div className="flex items-center justify-between border-t border-border px-4 py-3 bg-muted/20">
+                                                                <div className="text-xs text-muted-foreground">
+                                                                    Página {currentPage} de {totalPages}
+                                                                </div>
+                                                                <div className="flex gap-2">
+                                                                    <Button
+                                                                        variant="outline"
+                                                                        size="sm"
+                                                                        onClick={goToPreviousPage}
+                                                                        disabled={currentPage === 1}
+                                                                        className="h-8 w-8 p-0"
+                                                                    >
+                                                                        <ChevronLeft className="h-4 w-4" />
+                                                                    </Button>
+                                                                    <Button
+                                                                        variant="outline"
+                                                                        size="sm"
+                                                                        onClick={goToNextPage}
+                                                                        disabled={currentPage === totalPages}
+                                                                        className="h-8 w-8 p-0"
+                                                                    >
+                                                                        <ChevronRight className="h-4 w-4" />
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                        </div>
                                                 ) : (
                                                     <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
                                                         <Users className="h-8 w-8 mb-2 opacity-50" />
