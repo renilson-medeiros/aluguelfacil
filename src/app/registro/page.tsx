@@ -24,6 +24,8 @@ import { PasswordStrengthMeter } from "@/components/ui/PasswordStrengthMeter";
 export default function Register() {
     const [showPassword, setShowPassword] = useState(false);
     const [authError, setAuthError] = useState("");
+    const [success, setSuccess] = useState(false);
+    const [emailSent, setEmailSent] = useState("");
     const router = useRouter();
     const { signUp } = useAuth();
 
@@ -72,7 +74,8 @@ export default function Register() {
                 telefone: telefoneNumeros,
             });
 
-            router.push("/dashboard");
+            setEmailSent(data.email);
+            setSuccess(true);
         } catch (err: any) {
             console.error("Erro no cadastro:", err);
 
@@ -91,6 +94,47 @@ export default function Register() {
             }
         }
     };
+
+    if (success) {
+        return (
+            <div className="flex min-h-[100dvh] flex-col items-center justify-center bg-zinc-50 px-4 py-12 dark:bg-zinc-950">
+                <div className="mx-auto w-full max-w-md space-y-8 text-center bg-white p-8 rounded-2xl shadow-xl border border-zinc-100">
+                    <div className="flex flex-col items-center justify-center space-y-4">
+                        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/20">
+                            <svg className="h-10 w-10 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <h2 className="text-3xl font-bold tracking-tight text-zinc-900">
+                            Verifique seu e-mail
+                        </h2>
+                        <p className="text-zinc-500 text-lg">
+                            Enviamos um link de confirmação para:<br />
+                            <span className="font-semibold text-tertiary">{emailSent}</span>
+                        </p>
+                    </div>
+
+                    <div className="rounded-lg bg-amber-50 p-4 text-left border-l-4 border-amber-400">
+                        <p className="text-sm text-amber-800 leading-relaxed">
+                            <strong>Dica importante:</strong> Se não encontrar o e-mail em instantes, verifique sua pasta de <strong>Spam</strong> ou <strong>Lixo Eletrônico</strong>.
+                        </p>
+                    </div>
+
+                    <div className="space-y-4 pt-4">
+                        <Button 
+                            className="w-full bg-tertiary hover:bg-tertiary/90 h-12 text-base font-semibold shadow-md transition-transform active:scale-95 text-white" 
+                            onClick={() => router.push("/login")}
+                        >
+                            Ir para o Login
+                        </Button>
+                        <p className="text-sm text-zinc-400">
+                            Já confirmou o e-mail? Agora você pode acessar sua conta.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="flex min-h-screen w-full bg-background text-foreground">
