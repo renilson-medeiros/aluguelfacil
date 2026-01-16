@@ -14,9 +14,12 @@ import {
   Menu,
   Plus,
   Lock,
-  User
+  User,
+  AlertCircle,
+  Loader2
 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { Logo } from "@/components/ui/Logo";
@@ -81,12 +84,27 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
-  const { signOut, profile } = useAuth();
+  const { signOut, user, profile, resendConfirmationEmail } = useAuth();
+  const [isResending, setIsResending] = useState(false);
 
   const handleLogout = async () => {
     await signOut();
     router.refresh();
     router.replace("/login");
+  };
+
+  const handleResendEmail = async () => {
+    if (!profile?.email) return;
+    setIsResending(true);
+    try {
+      await resendConfirmationEmail(profile.email);
+      toast.success("E-mail de confirmação reenviado com sucesso!");
+    } catch (error: any) {
+      console.error("Erro ao reenviar e-mail:", error);
+      toast.error(error.message || "Erro ao reenviar e-mail de confirmação.");
+    } finally {
+      setIsResending(false);
+    }
   };
 
   // Verificação de Trial Expirado (Paywall)
@@ -100,6 +118,34 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className="min-h-screen bg-primary/5">
+      {/* Banner de Confirmação de E-mail */}
+      {user && !user.email_confirmed_at && (
+        <div className="bg-amber-500 text-white py-2 px-4 sticky top-0 z-100 shadow-md">
+          <div className="container mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <span>Sua conta ainda não foi confirmada. Verifique seu e-mail para ter acesso completo.</span>
+            </div>
+            <Button 
+              variant="secondary" 
+              size="sm" 
+              className="h-8 text-xs bg-white text-amber-600 hover:bg-white/90 shrink-0"
+              onClick={handleResendEmail}
+              disabled={isResending}
+            >
+              {isResending ? (
+                <>
+                  <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                  Enviando...
+                </>
+              ) : (
+                "Reenviar link de confirmação"
+              )}
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Desktop Sidebar */}
       <aside className="fixed inset-y-0 left-0 z-50 hidden w-64 border-r border-border/40 bg-card lg:block">
         <div className="flex h-full flex-col">

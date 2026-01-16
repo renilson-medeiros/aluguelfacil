@@ -12,6 +12,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
+    metadataBase: new URL("https://lugogestaodeimoveis.com.br"),
     title: {
         default: "Lugo - Gestão Inteligente de Imóveis",
         template: "%s | Lugo",
@@ -38,7 +39,7 @@ export const metadata: Metadata = {
     openGraph: {
         type: "website",
         locale: "pt_BR",
-        url: "https://lugo.vercel.app",
+        url: "https://lugogestaodeimoveis.com.br",
         siteName: "Lugo",
         title: "Lugo - Gestão Inteligente de Imóveis",
         description: "Simplifique a administração dos seus aluguéis com o Lugo.",

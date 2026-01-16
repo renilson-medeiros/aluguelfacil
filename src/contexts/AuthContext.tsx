@@ -15,6 +15,7 @@ interface AuthContextType {
   refreshProfile: () => Promise<Profile | null>;
   resetPassword: (email: string) => Promise<void>;
   updatePassword: (password: string) => Promise<void>;
+  resendConfirmationEmail: (email: string) => Promise<void>;
 }
 
 interface SignUpData {
@@ -148,12 +149,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     if (error) {
-      // Se o erro for de confirmação de email, mas o usuário foi criado, não bloquear
-      if (error.message.includes('Error sending confirmation email')) {
-        console.warn('Usuário criado, mas email de confirmação não foi enviado:', error);
-        // Não lançar erro, apenas avisar
-        throw new Error('Error sending confirmation email');
-      }
       throw error;
     }
   };
@@ -185,6 +180,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (error) throw error;
   };
 
+  const resendConfirmationEmail = async (email: string) => {
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/dashboard`,
+      },
+    });
+    if (error) throw error;
+  };
+
   const value = useMemo(() => ({
     user,
     profile,
@@ -195,7 +201,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isAdmin: profile?.role === 'admin',
     refreshProfile,
     resetPassword,
-    updatePassword
+    updatePassword,
+    resendConfirmationEmail
   }), [user, profile, loading, refreshProfile, signIn, signUp, signOut, resetPassword, updatePassword]);
 
   return (

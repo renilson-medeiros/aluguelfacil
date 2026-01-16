@@ -77,7 +77,7 @@ export default function Register() {
             console.error("Erro no cadastro:", err);
 
             if (err.message.includes("Error sending confirmation email")) {
-                setAuthError("Sua conta foi criada, mas houve um problema ao enviar o email de confirmação. Entre em contato com o suporte ou tente fazer login.");
+                setAuthError("Erro na configuração de e-mail do servidor (SMTP). O cadastro não pôde ser concluído. Verifique se o remetente está validado no painel do provedor de e-mail.");
             } else if (err.message.includes("already registered") || err.message.includes("User already registered")) {
                 setAuthError("Este email já está cadastrado");
             } else if (err.message.includes("duplicate key value violates unique constraint")) {

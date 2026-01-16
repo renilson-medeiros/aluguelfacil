@@ -1,6 +1,6 @@
 import { MetadataRoute } from 'next';
 
-const BASE_URL = 'https://alugo.vercel.app';
+const BASE_URL = 'https://lugogestaodeimoveis.com.br';
 
 export default function sitemap(): MetadataRoute.Sitemap {
     return [
