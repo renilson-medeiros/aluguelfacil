@@ -317,6 +317,7 @@ export default function PropertiesList({ initialData = [], initialLoading = true
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <Button
               variant="outline"
+              size="lg"
               onClick={handleShareCatalog}
               className="w-full sm:w-auto gap-2 border-tertiary text-tertiary hover:bg-primary/5 hover:text-tertiary"
             >
@@ -324,7 +325,7 @@ export default function PropertiesList({ initialData = [], initialLoading = true
               Compartilhar Catálogo
             </Button>
             <Link href="/dashboard/imoveis/novo" className="w-full sm:w-auto">
-              <Button className="w-full gap-2 bg-tertiary hover:bg-tertiary/90">
+              <Button size="lg" className="w-full gap-2 bg-tertiary hover:bg-tertiary/90">
                 <Plus className="h-4 w-4" />
                 Novo Imóvel
               </Button>
