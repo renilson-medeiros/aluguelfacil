@@ -7,13 +7,13 @@ import Link from "next/link";
 
 export function Paywall() {
     return (
-        <div className="flex flex-col items-center justify-center py-12 px-4 animate-in fade-in duration-500">
-            <Card className="max-w-2xl w-full border-tertiary/30 shadow-2xl shadow-tertiary/20 overflow-hidden">
+        <div className="flex flex-col items-center justify-center animate-in fade-in duration-500">
+            <Card className="max-w-3xl w-full border-tertiary/30 shadow-2xl shadow-tertiary/20 overflow-hidden">
                 <div className="bg-tertiary p-6 text-white relative overflow-hidden">
                     <div className="absolute top-0 right-0 opacity-10 -translate-y-4 translate-x-4">
                         <Zap size={150} />
                     </div>
-                    <div className="relative z-10 flex items-center gap-4">
+                    <div className="relative z-10 flex items-start md:items-center gap-4">
                         <div className="bg-white/20 p-3 rounded-lg backdrop-blur-sm">
                             <Lock className="h-8 w-8 text-white" />
                         </div>
@@ -25,8 +25,8 @@ export function Paywall() {
                 </div>
 
                 <CardContent className="p-8">
-                    <div className="grid md:grid-cols-2 gap-8 items-center">
-                        <div className="space-y-4">
+                    <div className="grid md:grid-cols-2 gap-8 items-end">
+                        <div className="space-y-4 max-w-sm">
                             <h3 className="font-bold text-lg">Continue gerenciando seus imóveis por apenas R$ 9,90/mês</h3>
                             <ul className="space-y-3">
                                 {[
@@ -37,14 +37,14 @@ export function Paywall() {
                                     "Dados 100% seguros na nuvem"
                                 ].map((item) => (
                                     <li key={item} className="flex items-center gap-2 text-sm text-muted-foreground">
-                                        <Zap className="h-4 w-4 text-tertiary fill-tertiary" />
+                                        <Zap className="h-4 w-4 text-success" />
                                         {item}
                                     </li>
                                 ))}
                             </ul>
                         </div>
 
-                        <div className="flex flex-col gap-4">
+                        <div className="flex flex-1 w-full flex-col gap-4">
                             <Link href="/checkout" className="w-full">
                                 <Button className="w-full bg-tertiary hover:bg-tertiary/90 h-14 text-lg font-bold gap-2 shadow-lg shadow-tertiary/20">
                                     Assinar agora
