@@ -13,12 +13,13 @@ ADD COLUMN IF NOT EXISTS subscription_id TEXT;
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, email, nome_completo, cpf, role, subscription_status, expires_at)
+  INSERT INTO public.profiles (id, email, nome_completo, cpf, telefone, role, subscription_status, expires_at)
   VALUES (
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'nome_completo', 'Usuário'),
     COALESCE(NEW.raw_user_meta_data->>'cpf', '00000000000'),
+    COALESCE(NEW.raw_user_meta_data->>'telefone', null),
     COALESCE(NEW.raw_user_meta_data->>'role', 'proprietario'),
     'trial',
     (NOW() + INTERVAL '7 days')

@@ -117,12 +117,13 @@ FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, email, nome_completo, cpf, role)
+  INSERT INTO public.profiles (id, email, nome_completo, cpf, telefone, role)
   VALUES (
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'nome_completo', 'Usuário'),
     COALESCE(NEW.raw_user_meta_data->>'cpf', '00000000000'),
+    COALESCE(NEW.raw_user_meta_data->>'telefone', null),
     COALESCE(NEW.raw_user_meta_data->>'role', 'proprietario')
   );
   RETURN NEW;
