@@ -7,17 +7,19 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Building2,
-  Share2,
   Eye,
   Edit,
-  MoreHorizontal,
   MapPin,
   Trash2,
   UserMinus,
   Settings2,
   Check,
   Plus,
-  Filter
+  Filter,
+  AlertCircle,
+  MoreHorizontal,
+  LayoutGrid,
+  Share2
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -45,6 +47,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { FilterBar } from "@/components/dashboard/FilterBar";
 import { EmptyState } from "@/components/dashboard/EmptyState";
@@ -69,6 +72,7 @@ interface PropertiesListProps {
 }
 
 export default function PropertiesList({ initialData = [], initialLoading = true }: PropertiesListProps) {
+  const { user } = useAuth();
   const { formatarMoeda } = useFormFormatting();
   const [searchQuery, setSearchQuery] = useState("");
   const [properties, setProperties] = useState<Property[]>(initialData);
@@ -166,6 +170,15 @@ export default function PropertiesList({ initialData = [], initialLoading = true
       description: "Compartilhe com potenciais inquilinos.",
     });
   }, []);
+
+  const handleShareCatalog = useCallback(() => {
+    if (!user) return;
+    const url = `${window.location.origin}/catalogo/${user.id}`;
+    navigator.clipboard.writeText(url);
+    toast.success("Link do catálogo copiado!", {
+      description: "Compartilhe todos os seus imóveis disponíveis.",
+    });
+  }, [user]);
 
   const handleDelete = useCallback(async () => {
     if (!deleteId) return;
@@ -292,14 +305,32 @@ export default function PropertiesList({ initialData = [], initialLoading = true
   return (
     <>
       <div className="space-y-6">
-        <DashboardHeader 
-          title="Imóveis" 
-          subtitle="Gerencie seus imóveis cadastrados"
-          action={{
-            label: "Novo imóvel",
-            href: "/dashboard/imoveis/novo"
-          }}
-        />
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <DashboardHeader 
+            title="Seus Imóveis" 
+            subtitle={
+              properties.length === 0
+                ? 'Nenhum imóvel cadastrado'
+                : `${properties.length} imóvel${properties.length !== 1 ? 's' : ''} encontrado${properties.length !== 1 ? 's' : ''}`
+            }
+          />
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <Button
+              variant="outline"
+              onClick={handleShareCatalog}
+              className="w-full sm:w-auto gap-2 border-tertiary text-tertiary hover:bg-primary/5 hover:text-tertiary"
+            >
+              <Share2 className="h-4 w-4" />
+              Compartilhar Catálogo
+            </Button>
+            <Link href="/dashboard/imoveis/novo" className="w-full sm:w-auto">
+              <Button className="w-full gap-2 bg-tertiary hover:bg-tertiary/90">
+                <Plus className="h-4 w-4" />
+                Novo Imóvel
+              </Button>
+            </Link>
+          </div>
+        </div>
 
         <FilterBar
           searchQuery={searchQuery}
