@@ -314,7 +314,7 @@ export default function PropertiesList({ initialData = [], initialLoading = true
                 : `${properties.length} imóvel${properties.length !== 1 ? 's' : ''} encontrado${properties.length !== 1 ? 's' : ''}`
             }
           />
-          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <div className="flex flex-col-reverse sm:flex-row gap-2 w-full sm:w-auto">
             <Button
               variant="outline"
               size="lg"
