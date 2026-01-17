@@ -767,7 +767,7 @@ export default function PropertyDetailClient() {
                                         <Separator className="my-8" />
                                         <div>
                                             <h2 className="font-display text-xl font-semibold">Observações</h2>
-                                            <p className="mt-4 text-muted-foreground leading-relaxed">
+                                            <p className="mt-4 text-muted-foreground leading-relaxed whitespace-pre-line">
                                                 {property.observations}
                                             </p>
                                         </div>
