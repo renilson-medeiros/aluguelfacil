@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { Logo } from "@/components/ui/Logo";
 import { Paywall } from "@/components/dashboard/Paywall";
+import { CompleteProfileForm } from "@/components/dashboard/CompleteProfileForm";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -115,6 +116,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   );
 
   const isSettingsPage = pathname === "/dashboard/configuracoes";
+
+  // Verificação de Perfil Incompleto (Mandatório para WhatsApp e CPF)
+  const isProfileIncomplete = !!(profile && (!profile.telefone || !profile.cpf));
 
   return (
     <div className="min-h-screen bg-primary/5">
@@ -258,7 +262,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Main Content */}
       <main className="lg:pl-64">
         <div className="container px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-          {isExpired && !isSettingsPage ? (
+          {isProfileIncomplete ? (
+            <CompleteProfileForm />
+          ) : isExpired && !isSettingsPage ? (
             <Paywall />
           ) : (
             children

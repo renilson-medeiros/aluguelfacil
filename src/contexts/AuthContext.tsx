@@ -9,6 +9,8 @@ interface AuthContextType {
   profile: Profile | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
+  signInWithOAuth: (provider: 'google') => Promise<void>;
+  updateProfile: (data: Partial<Profile>) => Promise<void>;
   signUp: (email: string, password: string, userData: SignUpData) => Promise<void>;
   signOut: () => Promise<void>;
   isAdmin: boolean;
@@ -128,6 +130,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const signInWithOAuth = async (provider: 'google') => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+
+    if (error) throw error;
+  };
+
+  const updateProfile = async (data: Partial<Profile>) => {
+    if (!user) throw new Error("Usuário não autenticado");
+
+    const { error } = await supabase
+      .from('profiles')
+      .update(data)
+      .eq('id', user.id);
+
+    if (error) throw error;
+    await loadProfile(user.id);
+  };
+
 
   // SIGNUP (trigger cuida do profile)
   const signUp = async (email: string, password: string, userData: SignUpData) => {
@@ -196,6 +221,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     profile,
     loading,
     signIn,
+    signInWithOAuth,
+    updateProfile,
     signUp,
     signOut,
     isAdmin: profile?.role === 'admin',
@@ -203,7 +230,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     resetPassword,
     updatePassword,
     resendConfirmationEmail
-  }), [user, profile, loading, refreshProfile, signIn, signUp, signOut, resetPassword, updatePassword]);
+  }), [user, profile, loading, refreshProfile, signIn, signInWithOAuth, updateProfile, signUp, signOut, resetPassword, updatePassword]);
 
   return (
     <AuthContext.Provider value={value}>

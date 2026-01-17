@@ -20,6 +20,7 @@ import { registerSchema, RegisterFormData } from "@/lib/schemas";
 import { formatarCPF, formatarTelefone } from "@/lib/validators";
 import { PLAN_PRICE_FORMATTED, TRIAL_DAYS, LINKS } from "@/lib/constants";
 import { PasswordStrengthMeter } from "@/components/ui/PasswordStrengthMeter";
+import { GoogleIcon } from "@/components/ui/SocialIcons";
 
 export default function Register() {
     const [showPassword, setShowPassword] = useState(false);
@@ -27,7 +28,17 @@ export default function Register() {
     const [success, setSuccess] = useState(false);
     const [emailSent, setEmailSent] = useState("");
     const router = useRouter();
-    const { signUp } = useAuth();
+    const { signUp, signInWithOAuth } = useAuth();
+
+    const handleSocialLogin = async (provider: 'google') => {
+        try {
+            setAuthError("");
+            await signInWithOAuth(provider);
+        } catch (err: any) {
+            console.error(`Erro no login social com ${provider}:`, err);
+            setAuthError(`Não foi possível entrar com Google.`);
+        }
+    };
 
     const {
         register,
@@ -97,7 +108,7 @@ export default function Register() {
 
     if (success) {
         return (
-            <div className="flex min-h-[100dvh] flex-col items-center justify-center bg-zinc-50 px-4 py-12 dark:bg-zinc-950">
+            <div className="flex min-h-dvh flex-col items-center justify-center bg-zinc-50 px-4 py-12 dark:bg-zinc-950">
                 <div className="mx-auto w-full max-w-md space-y-8 text-center bg-white p-8 rounded-2xl shadow-xl border border-zinc-100">
                     <div className="flex flex-col items-center justify-center space-y-4">
                         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/20">
@@ -172,7 +183,31 @@ export default function Register() {
                         </p>
                     </div>
 
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+                    <div className="flex flex-col gap-4">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            className="w-full h-11 border-border/60 hover:bg-zinc-50 transition-colors gap-2 my-0"
+                            onClick={() => handleSocialLogin('google')}
+                            disabled={isSubmitting}
+                        >
+                            <GoogleIcon className="h-5 w-5" />
+                            <span className="text-sm font-medium">Cadastrar com Google</span>
+                        </Button>
+                    </div>
+
+                    <div className="relative my-4">
+                        <div className="absolute inset-0 flex items-center">
+                            <span className="w-full border-t border-border" />
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                            <span className="bg-background px-2 text-muted-foreground italic">
+                                OU
+                            </span>
+                        </div>
+                    </div>
+
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 mt-4">
                         {authError && (
                             <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive flex items-start gap-2">
                                 <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />

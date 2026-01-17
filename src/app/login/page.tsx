@@ -10,6 +10,7 @@ import { Eye, EyeOff, AlertCircle, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Logo } from "@/components/ui/Logo";
 import { useForm } from "react-hook-form";
+import { GoogleIcon } from "@/components/ui/SocialIcons";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, LoginFormData } from "@/lib/schemas";
 
@@ -17,7 +18,17 @@ export default function Login() {
     const [showPassword, setShowPassword] = useState(false);
     const [authError, setAuthError] = useState("");
     const router = useRouter();
-    const { signIn } = useAuth();
+    const { signIn, signInWithOAuth } = useAuth();
+
+    const handleSocialLogin = async (provider: 'google') => {
+        try {
+            setAuthError("");
+            await signInWithOAuth(provider);
+        } catch (err: any) {
+            console.error(`Erro no login com ${provider}:`, err);
+            setAuthError(`Não foi possível entrar com Google.`);
+        }
+    };
 
     const {
         register,
@@ -158,6 +169,30 @@ export default function Login() {
                         >
                             {isSubmitting ? "Entrando..." : "Entrar"}
                         </Button>
+
+                        <div className="relative">
+                            <div className="absolute inset-0 flex items-center">
+                                <span className="w-full border-t border-border" />
+                            </div>
+                            <div className="relative flex justify-center text-xs uppercase">
+                                <span className="bg-background px-2 text-muted-foreground italic">
+                                    OU
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col gap-4">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className="w-full h-11 border-border/60 hover:bg-zinc-50 transition-colors gap-2"
+                                onClick={() => handleSocialLogin('google')}
+                                disabled={isSubmitting}
+                            >
+                                <GoogleIcon className="h-5 w-5" />
+                                <span className="text-sm font-medium">Entrar com Google</span>
+                            </Button>
+                        </div>
 
                         <div className="text-center text-sm text-muted-foreground">
                             Não tem uma conta?{" "}
