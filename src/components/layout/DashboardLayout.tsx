@@ -89,7 +89,7 @@ function NavItem({
             isActive
               ? "bg-primary/10 text-tertiary"
               : "text-tertiary/90 hover:bg-tertiary hover:text-white",
-            isCollapsed && "justify-start pl-[14px]"
+            isCollapsed && "justify-start"
           )}
           aria-current={isActive ? "page" : undefined}
         >
@@ -181,15 +181,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <aside 
           className={cn(
             "fixed inset-y-0 left-0 z-50 hidden border-r border-border/40 bg-card lg:block transition-all duration-300",
-            isCollapsed ? "w-20 transition-all duration-300" : "w-64"
+            isCollapsed ? "w-19.5 transition-all duration-300" : "w-64"
           )}
         >
           <div className="flex h-full flex-col">
             <div className={cn(
               "flex h-16 items-center border-b border-border/40 px-6",
-              isCollapsed && "justify-start pl-[17px]"
+              isCollapsed && "justify-start"
             )}>
-              <Logo iconOnly={isCollapsed} />
+              <Logo size={isCollapsed ? "sm" : "md"} iconOnly={isCollapsed} />
               {!isCollapsed && (
                 <div className="absolute -right-3 top-5">
                   <Tooltip delayDuration={300}>
@@ -267,7 +267,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     variant="ghost"
                     className={cn(
                       "w-full justify-start text-red-600 hover:text-white hover:bg-red-500",
-                      isCollapsed && "justify-start w-fit pl-[17px]"
+                      isCollapsed && "justify-start w-fit"
                     )}
                     onClick={handleLogout}
                   >
