@@ -16,7 +16,9 @@ import {
   Lock,
   User,
   AlertCircle,
-  Loader2
+  Loader2,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -25,6 +27,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Logo } from "@/components/ui/Logo";
 import { Paywall } from "@/components/dashboard/Paywall";
 import { CompleteProfileForm } from "@/components/dashboard/CompleteProfileForm";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -42,47 +50,65 @@ function NavItem({
   item,
   isActive,
   disabled,
+  isCollapsed,
   onClick
 }: {
   item: typeof menuItems[0];
   isActive: boolean;
   disabled?: boolean;
+  isCollapsed?: boolean;
   onClick?: () => void
 }) {
   if (disabled) {
     return (
       <div
         className={cn(
-          "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium opacity-50 cursor-not-allowed text-muted-foreground"
+          "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium opacity-50 cursor-not-allowed text-muted-foreground",
+          isCollapsed && "justify-center px-2"
         )}
       >
-        <item.icon className="h-5 w-5" aria-hidden="true" />
-        {item.label}
-        <Lock className="h-3 w-3 ml-auto text-muted-foreground/50" />
+        <item.icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+        {!isCollapsed && (
+          <>
+            {item.label}
+            <Lock className="h-3 w-3 ml-auto text-muted-foreground/50" />
+          </>
+        )}
       </div>
     );
   }
 
   return (
-    <Link
-      href={item.href}
-      onClick={onClick}
-      className={cn(
-        "flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-all duration-200",
-        isActive
-          ? "bg-primary/10 text-tertiary"
-          : "text-tertiary/90 hover:bg-tertiary hover:text-white"
+    <Tooltip delayDuration={300}>
+      <TooltipTrigger asChild>
+        <Link
+          href={item.href}
+          onClick={onClick}
+          className={cn(
+            "flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-all duration-200",
+            isActive
+              ? "bg-primary/10 text-tertiary"
+              : "text-tertiary/90 hover:bg-tertiary hover:text-white",
+            isCollapsed && "justify-start pl-[14px]"
+          )}
+          aria-current={isActive ? "page" : undefined}
+        >
+          <item.icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+          {!isCollapsed && item.label}
+        </Link>
+      </TooltipTrigger>
+      {isCollapsed && (
+        <TooltipContent side="right" className="font-medium">
+          {item.label}
+        </TooltipContent>
       )}
-      aria-current={isActive ? "page" : undefined}
-    >
-      <item.icon className="h-5 w-5" aria-hidden="true" />
-      {item.label}
-    </Link>
+    </Tooltip>
   );
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const { signOut, user, profile, resendConfirmationEmail } = useAuth();
@@ -151,51 +177,112 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       )}
 
       {/* Desktop Sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-50 hidden w-64 border-r border-border/40 bg-card lg:block">
-        <div className="flex h-full flex-col">
-          <div className="flex h-16 items-center border-b border-border/40 px-6">
-            <Logo />
-          </div>
+      <TooltipProvider>
+        <aside 
+          className={cn(
+            "fixed inset-y-0 left-0 z-50 hidden border-r border-border/40 bg-card lg:block transition-all duration-300",
+            isCollapsed ? "w-20 transition-all duration-300" : "w-64"
+          )}
+        >
+          <div className="flex h-full flex-col">
+            <div className={cn(
+              "flex h-16 items-center border-b border-border/40 px-6",
+              isCollapsed && "justify-start pl-[17px]"
+            )}>
+              <Logo iconOnly={isCollapsed} />
+              {!isCollapsed && (
+                <div className="absolute -right-3 top-5">
+                  <Tooltip delayDuration={300}>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="ml-auto h-6 w-6 text-muted-foreground rounded-full bg-white border border-border hover:bg-tertiary hover:border-tertiary hover:text-white"
+                        onClick={() => setIsCollapsed(true)}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">Colapsar menu</TooltipContent>
+                  </Tooltip>
+                </div>
+              )}
 
-          <nav className="flex-1 space-y-2 p-4" aria-label="Menu do painel">
-            {menuItems.map((item) => {
-              const isDisabled = isExpired && item.href !== "/dashboard/configuracoes" && item.href !== "/dashboard";
-              return (
-                <NavItem
-                  key={item.href}
-                  item={item}
-                  isActive={pathname === item.href}
-                  disabled={isDisabled}
-                />
-              );
-            })}
-          </nav>
-
-          <div className="border-t border-border/40 p-4">
-
-            <div className="flex items-center gap-2 py-4">
-
-              <span className="text-xl rounded-lg bg-primary/10 text-tertiary w-10 h-10 flex items-center justify-center font-bold">
-                {profile?.nome_completo[0]}
-              </span>
-
-              <div className="flex flex-col items-start gap-1">
-                <p className="text-sm text-secondary font-medium truncate max-w-40">{profile?.nome_completo}</p>
-                <p className="text-xs text-secondary/70 font-medium truncate max-w-40">{profile?.email}</p>
+              {isCollapsed && (
+              <div className="absolute -right-3 top-5">
+                <Tooltip delayDuration={300}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 text-muted-foreground rounded-full bg-white border border-border hover:bg-tertiary hover:border-tertiary hover:text-white"
+                      onClick={() => setIsCollapsed(false)}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">Expandir menu</TooltipContent>
+                </Tooltip>
               </div>
+            )}
             </div>
 
-            <Button
-              variant="ghost"
-              className="w-full justify-start text-red-600 hover:text-white hover:bg-red-500"
-              onClick={handleLogout}
-            >
-              <LogOut className="mr-3 h-5 w-5" aria-hidden="true" />
-              Sair
-            </Button>
+            <nav className="flex-1 space-y-2 overflow-hidden p-4" aria-label="Menu do painel">
+              {menuItems.map((item) => {
+                const isDisabled = isExpired && item.href !== "/dashboard/configuracoes" && item.href !== "/dashboard";
+                return (
+                  <NavItem
+                    key={item.href}
+                    item={item}
+                    isActive={pathname === item.href}
+                    disabled={isDisabled}
+                    isCollapsed={isCollapsed}
+                  />
+                );
+              })}
+            </nav>
+
+            <div className="border-t border-border/40 p-4">
+
+              <div className={cn(
+                "flex items-center gap-2 py-4",
+                isCollapsed && "justify-start ml-1"
+              )}>
+
+                <span className="text-xl rounded-lg bg-primary/10 text-tertiary w-10 h-10 flex items-center justify-center font-bold shrink-0">
+                  {profile?.nome_completo[0]}
+                </span>
+
+                {!isCollapsed && (
+                  <div className="flex flex-col items-start gap-1 overflow-hidden">
+                    <p className="text-sm text-secondary font-medium truncate w-full">{profile?.nome_completo}</p>
+                    <p className="text-xs text-secondary/70 font-medium truncate w-full">{profile?.email}</p>
+                  </div>
+                )}
+              </div>
+
+              <Tooltip delayDuration={300}>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className={cn(
+                      "w-full justify-start text-red-600 hover:text-white hover:bg-red-500",
+                      isCollapsed && "justify-start w-fit pl-[17px]"
+                    )}
+                    onClick={handleLogout}
+                  >
+                    <LogOut className={cn("h-5 w-5 ", !isCollapsed && "mr-3")} aria-hidden="true" />
+                    {!isCollapsed && "Sair"}
+                  </Button>
+                </TooltipTrigger>
+                {isCollapsed && (
+                  <TooltipContent side="right">Sair</TooltipContent>
+                )}
+              </Tooltip>
+            </div>
           </div>
-        </div>
-      </aside>
+        </aside>
+      </TooltipProvider>
 
       {/* Mobile Header */}
       <header className="sticky top-0 z-40 border-b border-border/40 bg-background/95 backdrop-blur lg:hidden">
@@ -260,7 +347,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       </header>
 
       {/* Main Content */}
-      <main className="lg:pl-64">
+      <main className={cn(
+        "transition-all duration-300",
+        isCollapsed ? "lg:pl-20" : "lg:pl-64"
+      )}>
         <div className="container px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
           {isProfileIncomplete ? (
             <CompleteProfileForm />
