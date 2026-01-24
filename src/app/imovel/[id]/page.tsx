@@ -78,8 +78,79 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
 }
 
+import { notFound } from 'next/navigation';
 import PropertyDetailClient from "./PropertyDetailClient";
 
-export default function PropertyDetailPage() {
-    return <PropertyDetailClient />;
+async function getPropertyData(id: string) {
+    const supabase = await createClient();
+
+    const { data: imovel } = await supabase
+        .from('imoveis')
+        .select(`
+      *,
+      profiles(nome_completo, telefone)
+    `)
+        .eq('id', id)
+        .single();
+
+    if (!imovel) return null;
+
+    // Transform data to match client component interface
+    return {
+        id: imovel.id,
+        title: imovel.titulo || `${imovel.endereco_rua}, ${imovel.endereco_numero}`,
+        status: imovel.status || 'disponivel',
+        images: imovel.fotos && imovel.fotos.length > 0
+            ? imovel.fotos
+            : ["/preview.png"],
+        address: {
+            street: imovel.endereco_rua,
+            number: imovel.endereco_numero,
+            complement: imovel.endereco_complemento,
+            neighborhood: imovel.endereco_bairro,
+            city: imovel.endereco_cidade,
+            state: imovel.endereco_estado,
+            zipCode: imovel.endereco_cep || '',
+        },
+        details: {
+            bedrooms: imovel.quartos,
+            bathrooms: imovel.banheiros,
+            area: imovel.area_m2,
+            garage: imovel.tem_garagem || false,
+            garageSpots: imovel.tem_garagem ? 1 : 0,
+            acceptsPets: imovel.aceita_pets || false,
+            maxPeople: imovel.max_pessoas,
+            acceptsChildren: imovel.aceita_criancas !== false,
+        },
+        rooms: imovel.comodos || [],
+        pricing: {
+            rent: imovel.valor_aluguel || 0,
+            condominium: imovel.valor_condominio || 0,
+            iptu: imovel.valor_iptu || 0,
+            serviceFee: imovel.valor_taxa_servico || 0,
+        },
+        included: {
+            water: imovel.inclui_agua || false,
+            electricity: imovel.inclui_luz || false,
+            internet: imovel.inclui_internet || false,
+            gas: imovel.inclui_gas || false,
+        },
+        observations: imovel.descricao,
+        owner: {
+            id: imovel.proprietario_id,
+            name: imovel.profiles?.nome_completo || 'Proprietário',
+            whatsapp: imovel.profiles?.telefone?.replace(/\D/g, '') || '',
+        },
+    };
+}
+
+export default async function PropertyDetailPage({ params }: Props) {
+    const { id } = await params;
+    const initialData = await getPropertyData(id);
+
+    if (!initialData) {
+        return notFound();
+    }
+
+    return <PropertyDetailClient initialData={initialData} />;
 }

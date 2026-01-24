@@ -10,8 +10,13 @@ import {
     SelectValue 
 } from "@/components/ui/select";
 import { Building2, TrendingUp, ChartPie, Info, DoorOpen, Wrench, Handshake } from "lucide-react";
-import RevenueChart from "./RevenueChart";
+import dynamic from "next/dynamic";
 import { cn } from "@/lib/utils";
+
+const RevenueChart = dynamic(() => import("./RevenueChart"), {
+    ssr: false,
+    loading: () => <div className="h-[300px] w-full bg-accent/20 animate-pulse rounded-lg mt-4" />
+});
 
 interface RevenueData {
     month: string;
