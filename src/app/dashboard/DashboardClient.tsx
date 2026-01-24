@@ -12,12 +12,15 @@ import { cn } from "@/lib/utils";
 import StatsCards from "@/components/dashboard/StatsCards";
 import DashboardDicaCard from "@/components/dashboard/DashboardDicaCard";
 import OccupancyRateCard from "@/components/dashboard/OccupancyRateCard";
-import AlertsCarousel from "@/components/dashboard/AlertsCarousel";
 import PropertiesPreviewClient from "@/components/dashboard/PropertiesPreviewClient";
 
 const RevenueChart = dynamic(() => import("@/components/dashboard/RevenueChart"), {
     ssr: false,
     loading: () => <div className="h-[300px] w-full bg-accent/20 animate-pulse rounded-lg mt-4" />
+});
+
+const AlertsCarousel = dynamic(() => import("@/components/dashboard/AlertsCarousel"), {
+    loading: () => <div className="h-[100px] w-full bg-accent/20 animate-pulse rounded-lg" />
 });
 
 interface DashboardStats {
